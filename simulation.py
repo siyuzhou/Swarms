@@ -8,7 +8,7 @@ import particle
 def create_chasers(n):
     prev = None
     particles = []
-    for _ in range(5):
+    for _ in range(n):
         r = 20
         theta = np.random.rand() * 2 * np.pi
 
@@ -21,8 +21,9 @@ def create_chasers(n):
         particles.append(p)
 
         prev = p
-
-    particles[0].target = p
+        
+    if particles:
+        particles[0].target = prev
 
     return particles
 
