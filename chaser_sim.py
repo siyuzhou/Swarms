@@ -6,6 +6,10 @@ import particle
 
 
 def create_chasers(n):
+    """
+    Create n particle chasers. 
+    Each particle chases the previous one in the list of particles.
+    """
     prev = None
     particles = []
     for _ in range(n):
@@ -21,11 +25,45 @@ def create_chasers(n):
         particles.append(p)
 
         prev = p
-        
+
     if particles:
         particles[0].target = prev
 
     return particles
+
+
+def chasers_edges(n):
+    """
+    Adjacency matrix of the chaser swarm defined in function `create_chasers(n)`.
+    A 1 at Row i, Column j means Particle i influences Particle j. No influence
+    is represented by 0.
+    """
+    matrix = np.zeros((n, n), dtype=int)
+    for i in range(n):
+        matrix[i, (i+1) % 5] = 1
+
+    return matrix
+
+
+def simulation(n):
+    particles = create_chasers(ARGS.num_particles)
+
+    position_data = []
+    velocity_data = []
+
+    for _ in range(ARGS.steps):
+        step_position = []
+        step_velocity = []
+        for p in particles:
+            step_position.append(p.position.copy())
+            step_velocity.append(p.velocity.copy())
+
+            p.move(ARGS.dt)
+
+        position_data.append(step_position)
+        velocity_data.append(step_velocity)
+
+    return position_data, velocity_data
 
 
 def main():
@@ -42,22 +80,7 @@ def main():
                                                        ARGS.instances, time.time()-prev_time))
             prev_time = time.time()
 
-        particles = create_chasers(ARGS.num_particles)
-
-        position_data = []
-        velocity_data = []
-
-        for _ in range(ARGS.steps):
-            step_position = []
-            step_velocity = []
-            for p in particles:
-                step_position.append(p.position.copy())
-                step_velocity.append(p.velocity.copy())
-
-                p.move(ARGS.dt)
-
-            position_data.append(step_position)
-            velocity_data.append(step_velocity)
+        position_data, velocity_data = simulation(ARGS.num_particles)
 
         position_data_all.append(position_data)
         velocity_data_all.append(velocity_data)
@@ -66,6 +89,10 @@ def main():
 
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_position.npy'), position_data_all)
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_velocity.npy'), velocity_data_all)
+
+    if ARGS.save_edges:
+        edges_all = np.tile(chasers_edges(ARGS.num_particles), (ARGS.instances, 1, 1))
+        np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_edge.npy'), edges_all)
 
 
 if __name__ == '__main__':
@@ -82,6 +109,8 @@ if __name__ == '__main__':
                         help='name of the save directory')
     parser.add_argument('--prefix', type=str, default='',
                         help='prefix for save files')
+    parser.add_argument('--save-edges', action='store_true', default=False,
+                        help='turn on to save edges')
     ARGS = parser.parse_args()
 
     main()
