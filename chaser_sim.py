@@ -92,7 +92,7 @@ def main():
 
     if ARGS.save_edges:
         edges_all = np.tile(chasers_edges(ARGS.num_particles), (ARGS.instances, 1, 1))
-        np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_edge.npy'), edges_all)
+        np.save(os.path.join(os.path.expanduser(ARGS.save_dir), ARGS.prefix+'_edge.npy'), edges_all)
 
 
 if __name__ == '__main__':
