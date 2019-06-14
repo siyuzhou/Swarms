@@ -40,7 +40,7 @@ def chasers_edges(n):
     """
     matrix = np.zeros((n, n), dtype=int)
     for i in range(n):
-        matrix[i, (i+1) % 5] = 1
+        matrix[i, (i+1) % n] = 1
 
     return matrix
 
