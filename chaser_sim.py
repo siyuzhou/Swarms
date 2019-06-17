@@ -20,7 +20,8 @@ def create_chasers(n):
 
         v = np.random.uniform(-2, 2, 2)
 
-        p = particle.ParticleChaser((x, y), v, max_v=10, max_a=10)
+        p = particle.ParticleChaser((x, y), v, ndim=2, max_speed=10, max_acceleration=10)
+
         p.target = prev
         particles.append(p)
 
