@@ -167,4 +167,6 @@ if __name__ == '__main__':
 
     ARGS = parser.parse_args()
 
+    ARGS.save_dir = os.path.expanduser(ARGS.save_dir)
+
     main()
