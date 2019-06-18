@@ -52,8 +52,9 @@ def system_edges():
     edges[0, up_to_boids:] = 5  # Influnce from goal to vicsek.
     edges[up_to_goal:up_to_obs, up_to_boids:] = 6  # Influnce from obstacle to vicsek.
     edges[up_to_obs:up_to_boids, up_to_boids:] = 7  # Influnce from obstacle to agent.
-    edges[up_to_boids:, up_to_boids] = 8  # Influnce from viscek to viscek.
+    edges[up_to_boids:, up_to_boids:] = 8  # Influnce from viscek to viscek.
 
+    np.fill_diagonal(edges, 0)
     return edges
 
 
@@ -63,16 +64,20 @@ def simulation(_):
     env = Environment2D(region)
 
     for _ in range(ARGS.boids):
-        agent = Boid(ndim=2, vision=ARGS.vision, size=ARGS.size,
+        position = np.random.uniform(-80, 80, 2)
+        velocity = np.random.uniform(-15, 15, 2)
+
+        agent = Boid(position, velocity, ndim=2, vision=ARGS.vision, size=ARGS.size,
                      max_speed=10, max_acceleration=20)
-        agent.initialize(np.random.uniform(-80, 80, 2),
-                         np.random.uniform(-15, 15, 2))
+
         env.add_agent(agent)
     for _ in range(ARGS.vicseks):
-        agent = Vicsek(ndim=2, vision=ARGS.vision, size=ARGS.size,
+        position = np.random.uniform(-80, 80, 2)
+        velocity = np.random.uniform(-15, 15, 2)
+
+        agent = Vicsek(position, velocity, ndim=2, vision=ARGS.vision, size=ARGS.size,
                        max_speed=10, max_acceleration=20)
-        agent.initialize(np.random.uniform(-80, 80, 2),
-                         np.random.uniform(-15, 15, 2))
+
         env.add_agent(agent)
 
     goal = Goal(np.random.uniform(-40, 40, 2), ndim=2)
@@ -147,12 +152,14 @@ if __name__ == '__main__':
                         help='number of simulation instances')
     parser.add_argument('--dt', type=float, default=0.1,
                         help='time resolution')
-    parser.add_argument('--config', type=str, default='config/default.json',
+    parser.add_argument('--config', type=str, default='config/boid_vicsek_default.json',
                         help='path to config file')
     parser.add_argument('--save-dir', type=str,
                         help='name of the save directory')
     parser.add_argument('--prefix', type=str, default='',
                         help='prefix for save files')
+    parser.add_argument('--save-edges', action='store_true', default=False,
+                        help='turn on to save edges')
     parser.add_argument('--processes', type=int, default=1,
                         help='number of parallel processes')
     parser.add_argument('--batch-size', type=int, default=100,
