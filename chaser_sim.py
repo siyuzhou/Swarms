@@ -2,7 +2,9 @@ import os
 import time
 import argparse
 import numpy as np
-import particle
+
+from classes import ParticleChaser
+import utils
 
 
 def create_chasers(n):
@@ -10,25 +12,25 @@ def create_chasers(n):
     Create n particle chasers. 
     Each particle chases the previous one in the list of particles.
     """
+    if n < 1:
+        raise ValueError('n must be a positive integer')
+
     prev = None
     particles = []
     for _ in range(n):
         r = 20
         theta = np.random.rand() * 2 * np.pi
-
         x, y = r * np.cos(theta), r * np.sin(theta)
-
         v = np.random.uniform(-2, 2, 2)
 
-        p = particle.ParticleChaser((x, y), v, ndim=2, max_speed=10, max_acceleration=10)
+        p = ParticleChaser((x, y), v, ndim=2, max_speed=10, max_acceleration=10)
 
         p.target = prev
         particles.append(p)
 
         prev = p
 
-    if particles:
-        particles[0].target = prev
+    particles[0].target = prev
 
     return particles
 
@@ -46,7 +48,7 @@ def chasers_edges(n):
     return matrix
 
 
-def simulation(n):
+def simulation(_):
     particles = create_chasers(ARGS.num_particles)
 
     position_data = []
@@ -71,28 +73,16 @@ def main():
     if not os.path.exists(ARGS.save_dir):
         os.makedirs(ARGS.save_dir)
 
-    position_data_all = []
-    velocity_data_all = []
-
-    prev_time = time.time()
-    for i in range(ARGS.instances):
-        if i % 1000 == 0:
-            print('Simulation {}/{}... {:.1f}s'.format(i,
-                                                       ARGS.instances, time.time()-prev_time))
-            prev_time = time.time()
-
-        position_data, velocity_data = simulation(ARGS.num_particles)
-
-        position_data_all.append(position_data)
-        velocity_data_all.append(velocity_data)
-
-    print('Simulations {0}/{0} completed.'.format(ARGS.instances))
+    position_data_all, velocity_data_all = utils.run_simulation(simulation,
+                                                                ARGS.instances, ARGS.processes,
+                                                                ARGS.batch_size)
 
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_position.npy'), position_data_all)
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_velocity.npy'), velocity_data_all)
 
     if ARGS.save_edges:
-        edges_all = np.tile(chasers_edges(ARGS.num_particles), (ARGS.instances, 1, 1))
+        edges = chasers_edges(ARGS.num_particles)
+        edges_all = np.tile(edges, (ARGS.instances, 1, 1))
         np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_edge.npy'), edges_all)
 
 
@@ -112,6 +102,11 @@ if __name__ == '__main__':
                         help='prefix for save files')
     parser.add_argument('--save-edges', action='store_true', default=False,
                         help='turn on to save edges')
+    parser.add_argument('--processes', type=int, default=1,
+                        help='number of parallel processes')
+    parser.add_argument('--batch-size', type=int, default=100,
+                        help='number of simulation instances for each process')
+
     ARGS = parser.parse_args()
 
     ARGS.save_dir = os.path.expanduser(ARGS.save_dir)
