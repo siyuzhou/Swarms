@@ -31,7 +31,7 @@ def create_chasers(n, m):
     particle_idxs = np.arange(n)
     for i, p in enumerate(particles):
         for j in np.random.choice(particle_idxs[particle_idxs != i], m, replace=False):
-            edges[j, i] = 1  # j is i's target, thus j influnces i through edge j->i.
+            edges[j, i] = 1  # j is i's target, thus j influences i through edge j->i.
             p.add_target(particles[j])
 
     return particles, edges

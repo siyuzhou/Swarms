@@ -29,7 +29,7 @@ def random_obstacle(position1, position2, r):
 
 
 def system_edges(obstacles, boids, vicseks):
-    """Edge types of the directed graph representing the influnces between
+    """Edge types of the directed graph representing the influences between
     elements of the system.
         |    |Goal|Obst|Boid|Visc|
         |Goal| 0  | 0  | 1  | 5  |
@@ -44,15 +44,15 @@ def system_edges(obstacles, boids, vicseks):
     up_to_obs = up_to_goal + obstacles
     up_to_boids = up_to_obs + boids
 
-    edges[0, up_to_obs:up_to_boids] = 1  # Influnce from goal to boid.
-    edges[up_to_goal:up_to_obs, up_to_obs:up_to_boids] = 2  # Influnce from obstacle to boid.
-    edges[up_to_obs:up_to_boids, up_to_obs:up_to_boids] = 3  # Influnce from boid to boid.
-    edges[up_to_boids:, up_to_obs:up_to_boids] = 4  # Influnce from vicsek to boid.
+    edges[0, up_to_obs:up_to_boids] = 1  # influence from goal to boid.
+    edges[up_to_goal:up_to_obs, up_to_obs:up_to_boids] = 2  # influence from obstacle to boid.
+    edges[up_to_obs:up_to_boids, up_to_obs:up_to_boids] = 3  # influence from boid to boid.
+    edges[up_to_boids:, up_to_obs:up_to_boids] = 4  # influence from vicsek to boid.
 
-    edges[0, up_to_boids:] = 5  # Influnce from goal to vicsek.
-    edges[up_to_goal:up_to_obs, up_to_boids:] = 6  # Influnce from obstacle to vicsek.
-    edges[up_to_obs:up_to_boids, up_to_boids:] = 7  # Influnce from obstacle to agent.
-    edges[up_to_boids:, up_to_boids:] = 8  # Influnce from viscek to viscek.
+    edges[0, up_to_boids:] = 5  # influence from goal to vicsek.
+    edges[up_to_goal:up_to_obs, up_to_boids:] = 6  # influence from obstacle to vicsek.
+    edges[up_to_obs:up_to_boids, up_to_boids:] = 7  # influence from obstacle to agent.
+    edges[up_to_boids:, up_to_boids:] = 8  # influence from viscek to viscek.
 
     np.fill_diagonal(edges, 0)
     return edges
