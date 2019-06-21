@@ -28,7 +28,7 @@ def random_obstacle(position1, position2, r):
     return Sphere(r, [true_x, true_y], ndim=2)
 
 
-def system_edges():
+def system_edges(obstacles, boids, vicseks):
     """Edge types of the directed graph representing the influnces between
     elements of the system.
         |    |Goal|Obst|Boid|Visc|
@@ -37,12 +37,12 @@ def system_edges():
         |Boid| 0  | 0  | 3  | 7  |
         |Visc| 0  | 0  | 4  | 8  |
     """
-    particles = 1 + ARGS.obstacles + ARGS.boids + ARGS.vicseks
+    particles = 1 + obstacles + boids + vicseks
     edges = np.zeros((particles, particles), dtype=int)
 
     up_to_goal = 1
-    up_to_obs = up_to_goal + ARGS.obstacles
-    up_to_boids = up_to_obs + ARGS.boids
+    up_to_obs = up_to_goal + obstacles
+    up_to_boids = up_to_obs + boids
 
     edges[0, up_to_obs:up_to_boids] = 1  # Influnce from goal to boid.
     edges[up_to_goal:up_to_obs, up_to_obs:up_to_boids] = 2  # Influnce from obstacle to boid.
@@ -59,6 +59,8 @@ def system_edges():
 
 
 def simulation(_):
+    np.random.seed()
+
     region = (-100, 100, -100, 100)
 
     env = Environment2D(region)
@@ -68,7 +70,7 @@ def simulation(_):
         velocity = np.random.uniform(-15, 15, 2)
 
         agent = Boid(position, velocity, ndim=2, vision=ARGS.vision, size=ARGS.size,
-                     max_speed=10, max_acceleration=20)
+                     max_speed=10, max_acceleration=5)
 
         env.add_agent(agent)
     for _ in range(ARGS.vicseks):
@@ -76,7 +78,7 @@ def simulation(_):
         velocity = np.random.uniform(-15, 15, 2)
 
         agent = Vicsek(position, velocity, ndim=2, vision=ARGS.vision, size=ARGS.size,
-                       max_speed=10, max_acceleration=20)
+                       max_speed=10, max_acceleration=5)
 
         env.add_agent(agent)
 
@@ -103,7 +105,9 @@ def simulation(_):
                              [np.zeros(2) for sphere in spheres] +
                              [agent.velocity.copy() for agent in env.population])
 
-    return position_data, velocity_data
+    edge_data = system_edges(ARGS.obstacles, ARGS.boids, ARGS.vicseks)
+
+    return position_data, velocity_data, edge_data
 
 
 def main():
@@ -118,19 +122,13 @@ def main():
     if ARGS.vicseks > 0:
         Vicsek.set_model(model_config["vicsek"])
 
-    position_data_all, velocity_data_all = utils.run_simulation(simulation,
-                                                                ARGS.instances, ARGS.processes,
-                                                                ARGS.batch_size)
+    position_data_all, velocity_data_all, edge_data_all = utils.run_simulation(simulation,
+                                                                               ARGS.instances, ARGS.processes,
+                                                                               ARGS.batch_size)
 
-    np.save(os.path.join(ARGS.save_dir, ARGS.prefix +
-                         '_position.npy'), position_data_all)
-    np.save(os.path.join(ARGS.save_dir, ARGS.prefix +
-                         '_velocity.npy'), velocity_data_all)
-
-    if ARGS.save_edges:
-        edges = system_edges()
-        edges_all = np.tile(edges, (ARGS.instances, 1, 1))
-        np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_edge.npy'), edges_all)
+    np.save(os.path.join(ARGS.save_dir, ARGS.prefix + '_position.npy'), position_data_all)
+    np.save(os.path.join(ARGS.save_dir, ARGS.prefix + '_velocity.npy'), velocity_data_all)
+    np.save(os.path.join(ARGS.save_dir, ARGS.prefix + '_edge.npy'), edge_data_all)
 
 
 if __name__ == '__main__':
@@ -159,7 +157,7 @@ if __name__ == '__main__':
     parser.add_argument('--prefix', type=str, default='',
                         help='prefix for save files')
     parser.add_argument('--save-edges', action='store_true', default=False,
-                        help='turn on to save edges')
+                        help='Deprecated. Now edges are always saved.')
     parser.add_argument('--processes', type=int, default=1,
                         help='number of parallel processes')
     parser.add_argument('--batch-size', type=int, default=100,

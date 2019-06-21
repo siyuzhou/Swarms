@@ -48,28 +48,25 @@ class ParticleChaser(Particle):
                  ndim=None, max_speed=None, max_acceleration=None):
         super().__init__(position, velocity, acceleration, ndim, max_speed, max_acceleration)
 
-        self._target = None
+        self._targets = []
 
     @property
-    def target(self):
-        return self._target
+    def targets(self):
+        return self._targets
 
-    @target.setter
-    def target(self, new_target):
+    def add_target(self, new_target):
         if new_target:
             if not isinstance(new_target, Particle):
                 raise ValueError('new_target must be a Particle')
 
-            self._target = new_target
+            self._targets.append(new_target)
 
-    def move(self, dt):
-        dt = float(dt)
+    def decide(self):
+        displacement = np.zeros(self.ndim)
+        for target in self.targets:
+            displacement += target.position - self.position
 
-        if self.target:
-            displacement = self.target.position - self.position
-            self.acceleration = displacement
-
-        super().move(dt)
+        self.acceleration = displacement
 
 
 class DynamicalChaser(Agent):

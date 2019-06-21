@@ -7,13 +7,15 @@ from classes import ParticleChaser
 import utils
 
 
-def create_chasers(n):
+def create_chasers(n, m):
     """
-    Create n particle chasers. 
-    Each particle chases the previous one in the list of particles.
+    Create n particle chasers, each with m targets randomly selected with in the group.
     """
     if n < 1:
         raise ValueError('n must be a positive integer')
+
+    if m < 1 or m > n - 1:
+        raise ValueError('m must be a positive integer less than n')
 
     prev = None
     particles = []
@@ -23,21 +25,21 @@ def create_chasers(n):
         x, y = r * np.cos(theta), r * np.sin(theta)
         v = np.random.uniform(-2, 2, 2)
 
-        p = ParticleChaser((x, y), v, ndim=2, max_speed=10, max_acceleration=10)
+        particles.append(ParticleChaser((x, y), v, ndim=2, max_speed=10, max_acceleration=10))
 
-        p.target = prev
-        particles.append(p)
+    edges = np.zeros((n, n))
+    particle_idxs = np.arange(n)
+    for i, p in enumerate(particles):
+        for j in np.random.choice(particle_idxs[particle_idxs != i], m, replace=False):
+            edges[j, i] = 1  # j is i's target, thus j influnces i through edge j->i.
+            p.add_target(particles[j])
 
-        prev = p
-
-    particles[0].target = prev
-
-    return particles
+    return particles, edges
 
 
 def chasers_edges(n):
     """
-    Adjacency matrix of the chaser swarm defined in function `create_chasers(n)`.
+    Edges for a list of chaser particles in which each agent chases its predecessor in the list.
     A 1 at Row i, Column j means Particle i influences Particle j. No influence
     is represented by 0.
     """
@@ -49,7 +51,9 @@ def chasers_edges(n):
 
 
 def simulation(_):
-    particles = create_chasers(ARGS.num_particles)
+    np.random.seed()
+
+    particles, edges = create_chasers(ARGS.num_particles, ARGS.num_targets)
 
     position_data = []
     velocity_data = []
@@ -61,35 +65,37 @@ def simulation(_):
             step_position.append(p.position.copy())
             step_velocity.append(p.velocity.copy())
 
+            p.decide()
+
+        for p in particles:
             p.move(ARGS.dt)
 
         position_data.append(step_position)
         velocity_data.append(step_velocity)
 
-    return position_data, velocity_data
+    return position_data, velocity_data, edges
 
 
 def main():
     if not os.path.exists(ARGS.save_dir):
         os.makedirs(ARGS.save_dir)
 
-    position_data_all, velocity_data_all = utils.run_simulation(simulation,
-                                                                ARGS.instances, ARGS.processes,
-                                                                ARGS.batch_size)
+    position_data_all, velocity_data_all, edge_data_all = utils.run_simulation(simulation,
+                                                                               ARGS.instances,
+                                                                               ARGS.processes,
+                                                                               ARGS.batch_size)
 
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_position.npy'), position_data_all)
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_velocity.npy'), velocity_data_all)
-
-    if ARGS.save_edges:
-        edges = chasers_edges(ARGS.num_particles)
-        edges_all = np.tile(edges, (ARGS.instances, 1, 1))
-        np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_edge.npy'), edges_all)
+    np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_edge.npy'), edge_data_all)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--num-particles', '-n', type=int, default=5,
                         help='number of particles')
+    parser.add_argument('--num-targets', '-m', type=int, default=1,
+                        help='number of targets for each particle')
     parser.add_argument('--instances', type=int, default=1000,
                         help='number of instances to run')
     parser.add_argument('--steps', type=int, default=50,
@@ -101,7 +107,7 @@ if __name__ == '__main__':
     parser.add_argument('--prefix', type=str, default='',
                         help='prefix for save files')
     parser.add_argument('--save-edges', action='store_true', default=False,
-                        help='turn on to save edges')
+                        help='Deprecated. Now edges are always saved.')
     parser.add_argument('--processes', type=int, default=1,
                         help='number of parallel processes')
     parser.add_argument('--batch-size', type=int, default=100,
@@ -110,5 +116,5 @@ if __name__ == '__main__':
     ARGS = parser.parse_args()
 
     ARGS.save_dir = os.path.expanduser(ARGS.save_dir)
-    
+
     main()
