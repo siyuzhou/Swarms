@@ -53,7 +53,12 @@ def chasers_edges(n):
 def simulation(_):
     np.random.seed()
 
-    particles, edges = create_chasers(ARGS.num_particles, ARGS.num_targets)
+    if ARGS.num_targets == 'x':
+        num_targets = np.random.randint(1, ARGS.num_particles)
+    else:
+        num_targets = int(ARGS.num_particles)
+
+    particles, edges = create_chasers(ARGS.num_particles, num_targets)
 
     position_data = []
     velocity_data = []
@@ -94,8 +99,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--num-particles', '-n', type=int, default=5,
                         help='number of particles')
-    parser.add_argument('--num-targets', '-m', type=int, default=1,
-                        help='number of targets for each particle')
+    parser.add_argument('--num-targets', '-m', type=str, default=1,
+                        help="number of targets for each particle"
+                             "use 'x' for a random number")
     parser.add_argument('--instances', type=int, default=1000,
                         help='number of instances to run')
     parser.add_argument('--steps', type=int, default=50,
