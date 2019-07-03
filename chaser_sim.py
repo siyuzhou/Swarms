@@ -56,7 +56,7 @@ def simulation(_):
     if ARGS.num_targets == 'x':
         num_targets = np.random.randint(1, ARGS.num_particles)
     else:
-        num_targets = int(ARGS.num_particles)
+        num_targets = int(ARGS.num_targets)
 
     particles, edges = create_chasers(ARGS.num_particles, num_targets)
 
