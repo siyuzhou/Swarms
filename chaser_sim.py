@@ -14,7 +14,11 @@ def create_chasers(n, m):
     if n < 1:
         raise ValueError('n must be a positive integer')
 
-    if m < 1 or m > n - 1:
+    if m == 'x':
+        m = np.random.randint(1, n)
+    elif m == 'y':
+        pass
+    elif not isinstance(m, int) or (m < 1 or m > n - 1):
         raise ValueError('m must be a positive integer less than n')
 
     prev = None
@@ -30,35 +34,35 @@ def create_chasers(n, m):
     edges = np.zeros((n, n))
     particle_idxs = np.arange(n)
     for i, p in enumerate(particles):
-        for j in np.random.choice(particle_idxs[particle_idxs != i], m, replace=False):
+        if m == 'y':
+            k = np.random.randint(1, n)
+        else:
+            k = m
+
+        for j in np.random.choice(particle_idxs[particle_idxs != i], k, replace=False):
             edges[j, i] = 1  # j is i's target, thus j influences i through edge j->i.
             p.add_target(particles[j])
 
     return particles, edges
 
 
-def chasers_edges(n):
-    """
-    Edges for a list of chaser particles in which each agent chases its predecessor in the list.
-    A 1 at Row i, Column j means Particle i influences Particle j. No influence
-    is represented by 0.
-    """
-    matrix = np.zeros((n, n), dtype=int)
-    for i in range(n):
-        matrix[i, (i+1) % n] = 1
+# def chasers_edges(n):
+#     """
+#     Edges for a list of chaser particles in which each agent chases its predecessor in the list.
+#     A 1 at Row i, Column j means Particle i influences Particle j. No influence
+#     is represented by 0.
+#     """
+#     matrix = np.zeros((n, n), dtype=int)
+#     for i in range(n):
+#         matrix[i, (i+1) % n] = 1
 
-    return matrix
+#     return matrix
 
 
 def simulation(_):
     np.random.seed()
 
-    if ARGS.num_targets == 'x':
-        num_targets = np.random.randint(1, ARGS.num_particles)
-    else:
-        num_targets = int(ARGS.num_targets)
-
-    particles, edges = create_chasers(ARGS.num_particles, num_targets)
+    particles, edges = create_chasers(ARGS.num_particles, ARGS.num_targets)
 
     position_data = []
     velocity_data = []
@@ -100,8 +104,9 @@ if __name__ == '__main__':
     parser.add_argument('--num-particles', '-n', type=int, default=5,
                         help='number of particles')
     parser.add_argument('--num-targets', '-m', type=str, default=1,
-                        help="number of targets for each particle"
-                             "use 'x' for a random number")
+                        help="number of targets for each particle\n"
+                             "use 'x' for a random number\n"
+                             "use 'y' for a different random number for each agent")
     parser.add_argument('--instances', type=int, default=1000,
                         help='number of instances to run')
     parser.add_argument('--steps', type=int, default=50,
