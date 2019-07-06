@@ -37,7 +37,7 @@ def create_chasers(n, m):
         if m == 'y':
             k = np.random.randint(1, n)
         else:
-            k = m
+            k = int(m)
 
         for j in np.random.choice(particle_idxs[particle_idxs != i], k, replace=False):
             edges[j, i] = 1  # j is i's target, thus j influences i through edge j->i.
