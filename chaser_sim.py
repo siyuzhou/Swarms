@@ -18,7 +18,7 @@ def create_chasers(n, m):
         m = np.random.randint(1, n)
     elif m == 'y':
         pass
-    elif not isinstance(m, int) or (m < 1 or m > n - 1):
+    elif int(m) < 1 or int(m) > n - 1:
         raise ValueError('m must be a positive integer less than n')
 
     prev = None
