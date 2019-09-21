@@ -37,6 +37,10 @@ def system_edges(obstacles, boids, vicseks):
         |Boid| 0  | 0  | 3  | 7  |
         |Visc| 0  | 0  | 4  | 8  |
     """
+    # If boids == 0, edges would be same as if vicseks were boids
+    if boids == 0:
+        boids, vicseks = vicseks, boids
+        
     particles = 1 + obstacles + boids + vicseks
     edges = np.zeros((particles, particles), dtype=int)
 
