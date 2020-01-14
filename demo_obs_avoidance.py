@@ -16,10 +16,16 @@ def animate(env, region):
     def animate(i, scats, env):
         env.update(ARGS.dt)
 
-        scats[0].set_offsets([agent.position for agent in env.population
-                              if isinstance(agent, Boid)])
-        scats[1].set_offsets([agent.position for agent in env.population
-                              if isinstance(agent, Vicsek)])
+        boid_positions = [agent.position for agent in env.population
+                          if isinstance(agent, Boid)]
+        if boid_positions:
+            scats[0].set_offsets(boid_positions)
+
+        vicsek_positions = [agent.position for agent in env.population
+                            if isinstance(agent, Vicsek)]
+        if vicsek_positions:
+            scats[1].set_offsets(vicsek_positions)
+
         return scats[0], scats[1]
 
     xmin, xmax, ymin, ymax = region
@@ -97,7 +103,7 @@ if __name__ == '__main__':
                         help='number of simulation steps')
     parser.add_argument('--dt', type=float, default=0.2,
                         help='time resolution')
-    parser.add_argument('--config', type=str, default='config/default.json',
+    parser.add_argument('--config', type=str, default='config/boid_vicsek_default.json',
                         help='path to config file')
     parser.add_argument('--save-name', type=str, default='demo',
                         help='name of the save file')
