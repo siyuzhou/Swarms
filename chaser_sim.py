@@ -117,8 +117,6 @@ if __name__ == '__main__':
                         help='name of the save directory')
     parser.add_argument('--prefix', type=str, default='',
                         help='prefix for save files')
-    parser.add_argument('--save-edges', action='store_true', default=False,
-                        help='Deprecated. Now edges are always saved.')
     parser.add_argument('--processes', type=int, default=1,
                         help='number of parallel processes')
     parser.add_argument('--batch-size', type=int, default=100,
