@@ -66,37 +66,62 @@ def simulation(_):
 
     position_data = []
     velocity_data = []
+    time_data = []
 
-    for _ in range(ARGS.steps):
-        step_position = []
-        step_velocity = []
+    num_skips = 0
+    skip = False
+    step = 0
+    t = 0
+    while step < ARGS.steps:
+        if skip:
+            num_skips += 1
+        else:
+            num_skips = 0
+            
+            step_position = []
+            step_velocity = []
+            for p in particles:
+                step_position.append(p.position.copy())
+                step_velocity.append(p.velocity.copy())
+
+            position_data.append(step_position)
+            velocity_data.append(step_velocity)
+            time_data.append(t)
+
+            step += 1
+
         for p in particles:
-            step_position.append(p.position.copy())
-            step_velocity.append(p.velocity.copy())
-
             p.decide()
 
         for p in particles:
             p.move(ARGS.dt)
 
-        position_data.append(step_position)
-        velocity_data.append(step_velocity)
+        t += ARGS.dt
 
-    return position_data, velocity_data, edges
+        if ARGS.adaptive and num_skips < ARGS.max_skip:
+            for p in particles:
+                if np.linalg.norm(p.acceleration) / np.linalg.norm(p.speed) * ARGS.dt > ARGS.max_rate:
+                    skip = False
+                    break
+            else:
+                skip = True
+        else:
+            skip = False
+
+    return position_data, velocity_data, edges, time_data
 
 
 def main():
     if not os.path.exists(ARGS.save_dir):
         os.makedirs(ARGS.save_dir)
 
-    position_data_all, velocity_data_all, edge_data_all = utils.run_simulation(simulation,
-                                                                               ARGS.instances,
-                                                                               ARGS.processes,
-                                                                               ARGS.batch_size)
+    position_data_all, velocity_data_all, edge_data_all, time_data_all = \
+        utils.run_simulation(simulation, ARGS.instances, ARGS.processes, ARGS.batch_size)
 
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_position.npy'), position_data_all)
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_velocity.npy'), velocity_data_all)
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_edge.npy'), edge_data_all)
+    np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_time.npy'), time_data_all)
 
 
 if __name__ == '__main__':
@@ -113,6 +138,12 @@ if __name__ == '__main__':
                         help='number of time steps per simulation')
     parser.add_argument('--dt', type=float, default=0.3,
                         help='unit time step')
+    parser.add_argument('--adaptive', action='store_true', default=False,
+                        help='save states only when dv/v exceeds max rate')
+    parser.add_argument('--max-rate', type=float,
+                        help='max change rate allowed for skip steps')
+    parser.add_argument('--max-skip', type=int, default=5,
+                        help='max number of steps allowed to skip in adaptive mode')
     parser.add_argument('--save-dir', type=str,
                         help='name of the save directory')
     parser.add_argument('--prefix', type=str, default='',
