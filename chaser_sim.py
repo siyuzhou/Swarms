@@ -100,7 +100,7 @@ def simulation(_):
 
         if ARGS.adaptive and num_skips < ARGS.max_skip:
             for p in particles:
-                if np.linalg.norm(p.acceleration) / np.linalg.norm(p.speed) * ARGS.dt > ARGS.max_rate:
+                if np.linalg.norm(p.acceleration) / p.speed * ARGS.dt > ARGS.max_rate:
                     skip = False
                     break
             else:
