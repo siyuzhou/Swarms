@@ -133,7 +133,7 @@ def main():
                                                                                ARGS.instances, ARGS.processes,
                                                                                ARGS.batch_size)
 
-    np.save(os.path.join(ARGS.save_dir, ARGS.prefix + '_timeseries.npy'), timeseries_all)
+    np.save(os.path.join(ARGS.save_dir, ARGS.prefix + '_timeseries.npy'), timeseries_data_all)
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix + '_edge.npy'), edge_data_all)
 
 
