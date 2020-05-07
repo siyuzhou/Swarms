@@ -100,6 +100,8 @@ def simulation(_):
 
     position_data = []
     velocity_data = []
+    time_data = []
+    t = 0
     for _ in range(ARGS.steps):
         env.update(ARGS.dt)
         position_data.append([goal.position for goal in env.goals] +
@@ -108,13 +110,15 @@ def simulation(_):
         velocity_data.append([np.zeros(2) for goal in env.goals] +
                              [np.zeros(2) for sphere in spheres] +
                              [agent.velocity.copy() for agent in env.population])
+        time_data.append(t)
+        t += ARGS.dt
 
     position_data, velocity_data = np.asarray(position_data), np.asarray(velocity_data)
     timeseries_data = np.concatenate([position_data, velocity_data], axis=-1)
 
     edge_data = system_edges(ARGS.obstacles, ARGS.boids, ARGS.vicseks)
 
-    return timeseries_data, edge_data
+    return timeseries_data, edge_data, time_data
 
 
 def main():
@@ -162,8 +166,6 @@ if __name__ == '__main__':
                         help='name of the save directory')
     parser.add_argument('--prefix', type=str, default='',
                         help='prefix for save files')
-    parser.add_argument('--save-edges', action='store_true', default=False,
-                        help='Deprecated. Now edges are always saved.')
     parser.add_argument('--processes', type=int, default=1,
                         help='number of parallel processes')
     parser.add_argument('--batch-size', type=int, default=100,
