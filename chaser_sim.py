@@ -64,8 +64,7 @@ def simulation(_):
 
     particles, edges = create_chasers(ARGS.num_particles, ARGS.num_targets)
 
-    position_data = []
-    velocity_data = []
+    timeseries_data = []
     time_data = []
 
     num_skips = 0
@@ -78,14 +77,12 @@ def simulation(_):
         else:
             num_skips = 0
             
-            step_position = []
-            step_velocity = []
+            step_data = []
             for p in particles:
-                step_position.append(p.position.copy())
-                step_velocity.append(p.velocity.copy())
+                state = np.concatenate([p.position, p.velocity], axis=-1)
+                step_data.append(state)
 
-            position_data.append(step_position)
-            velocity_data.append(step_velocity)
+            timeseries_data.append(step_data)
             time_data.append(t)
 
             step += 1
@@ -108,18 +105,18 @@ def simulation(_):
         else:
             skip = False
 
-    return position_data, velocity_data, edges, time_data
+    return timeseries_data, edges, time_data
 
 
 def main():
     if not os.path.exists(ARGS.save_dir):
         os.makedirs(ARGS.save_dir)
 
-    position_data_all, velocity_data_all, edge_data_all, time_data_all = \
+    timeseries_data_all, edge_data_all, time_data_all = \
         utils.run_simulation(simulation, ARGS.instances, ARGS.processes, ARGS.batch_size)
 
-    np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_position.npy'), position_data_all)
-    np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_velocity.npy'), velocity_data_all)
+
+    np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_timeseries.npy'), timeseries_data_all)
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_edge.npy'), edge_data_all)
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_time.npy'), time_data_all)
 

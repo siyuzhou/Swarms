@@ -109,9 +109,12 @@ def simulation(_):
                              [np.zeros(2) for sphere in spheres] +
                              [agent.velocity.copy() for agent in env.population])
 
+    position_data, velocity_data = np.asarray(position_data), np.asarray(velocity_data)
+    timeseries_data = np.concatenate([position_data, velocity_data], axis=-1)
+
     edge_data = system_edges(ARGS.obstacles, ARGS.boids, ARGS.vicseks)
 
-    return position_data, velocity_data, edge_data
+    return timeseries_data, edge_data
 
 
 def main():
@@ -126,12 +129,11 @@ def main():
     if ARGS.vicseks > 0:
         Vicsek.set_model(model_config["vicsek"])
 
-    position_data_all, velocity_data_all, edge_data_all = utils.run_simulation(simulation,
+    timeseries_data_all, velocity_data_all, edge_data_all = utils.run_simulation(simulation,
                                                                                ARGS.instances, ARGS.processes,
                                                                                ARGS.batch_size)
 
-    np.save(os.path.join(ARGS.save_dir, ARGS.prefix + '_position.npy'), position_data_all)
-    np.save(os.path.join(ARGS.save_dir, ARGS.prefix + '_velocity.npy'), velocity_data_all)
+    np.save(os.path.join(ARGS.save_dir, ARGS.prefix + '_timeseries.npy'), timeseries_all)
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix + '_edge.npy'), edge_data_all)
 
 
