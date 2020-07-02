@@ -59,10 +59,10 @@ def create_chasers(n, m):
 #     return matrix
 
 
-def simulation(_):
+def simulation(args, _):
     np.random.seed()
 
-    particles, edges = create_chasers(ARGS.num_particles, ARGS.num_targets)
+    particles, edges = create_chasers(args.num_particles, args.num_targets)
 
     timeseries_data = []
     time_data = []
@@ -71,12 +71,12 @@ def simulation(_):
     skip = False
     step = 0
     t = 0
-    while step < ARGS.steps:
+    while step < args.steps:
         if skip:
             num_skips += 1
         else:
             num_skips = 0
-            
+
             step_data = []
             for p in particles:
                 state = np.concatenate([p.position, p.velocity], axis=-1)
@@ -91,13 +91,13 @@ def simulation(_):
             p.decide()
 
         for p in particles:
-            p.move(ARGS.dt)
+            p.move(args.dt)
 
-        t += ARGS.dt
+        t += args.dt
 
-        if ARGS.adaptive and num_skips < ARGS.max_skip:
+        if args.adaptive and num_skips < args.max_skip:
             for p in particles:
-                if np.linalg.norm(p.acceleration) / p.speed * ARGS.dt > ARGS.max_rate:
+                if np.linalg.norm(p.acceleration) / p.speed * args.dt > args.max_rate:
                     skip = False
                     break
             else:
@@ -113,8 +113,7 @@ def main():
         os.makedirs(ARGS.save_dir)
 
     timeseries_data_all, edge_data_all, time_data_all = \
-        utils.run_simulation(simulation, ARGS.instances, ARGS.processes, ARGS.batch_size)
-
+        utils.run_simulation(simulation, ARGS, ARGS.instances, ARGS.processes, ARGS.batch_size)
 
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_timeseries.npy'), timeseries_data_all)
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_edge.npy'), edge_data_all)
