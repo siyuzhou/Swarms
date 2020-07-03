@@ -3,7 +3,7 @@ import functools
 import multiprocessing
 
 
-def run_simulation(simulation, instances, processes=1, batch=100, silent=False):
+def run_simulation(simulation, args, instances, processes=1, batch=100, silent=False):
     pool = multiprocessing.Pool(processes=processes)
     timeseries_data_all = []
     edge_data_all = []
@@ -14,7 +14,8 @@ def run_simulation(simulation, instances, processes=1, batch=100, silent=False):
     prev_time = time.time()
     while remaining_instances > 0:
         n = min(remaining_instances, batch)
-        data_pool = pool.map(simulation, range(n))
+        func = functools.partial(simulation, args)
+        data_pool = pool.map(func, range(n))
 
         timeseries_pool, edge_pool, time_pool = zip(*data_pool)
 
