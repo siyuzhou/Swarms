@@ -40,7 +40,7 @@ def system_edges(obstacles, boids, vicseks):
     # If boids == 0, edges would be same as if vicseks were boids
     if boids == 0:
         boids, vicseks = vicseks, boids
-        
+
     particles = 1 + obstacles + boids + vicseks
     edges = np.zeros((particles, particles), dtype=int)
 
@@ -133,18 +133,18 @@ def main():
     if ARGS.vicseks > 0:
         Vicsek.set_model(model_config["vicsek"])
 
-    timeseries_data_all, velocity_data_all, edge_data_all = utils.run_simulation(simulation,
-                                                                               ARGS.instances, ARGS.processes,
-                                                                               ARGS.batch_size)
+    timeseries_data_all, edge_data_all, time_data_all = \
+        utils.run_simulation(simulation, ARGS.instances, ARGS.processes, ARGS.batch_size)
 
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix + '_timeseries.npy'), timeseries_data_all)
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix + '_edge.npy'), edge_data_all)
+    np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_time.npy'), time_data_all)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--boids', type=int, default=10,
+    parser.add_argument('--boids', type=int, default=0,
                         help='number of boid agents')
     parser.add_argument('--vicseks', type=int, default=0,
                         help='number of vicsek agents')
