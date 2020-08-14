@@ -14,10 +14,16 @@ class Environment2D:
         self.goals = []
 
         xmin, xmax, ymin, ymax = boundary
-        self.obstacles = [Wall((1, 0), (xmin, 0), ndim=2),
-                          Wall((-1, 0), (xmax, 0), ndim=2),
-                          Wall((0, 1), (0, ymin), ndim=2),
-                          Wall((0, -1), (0, ymax), ndim=2)]
+        self.boundaries = [Wall((1, 0), (xmin, 0), ndim=2),
+                           Wall((-1, 0), (xmax, 0), ndim=2),
+                           Wall((0, 1), (0, ymin), ndim=2),
+                           Wall((0, -1), (0, ymax), ndim=2)]
+
+        self._obstacles = []
+
+    @property
+    def obstacles(self):
+        return self.boundaries + self._obstacles
 
     def add_agent(self, agent):
         if not isinstance(agent, Agent):
@@ -39,7 +45,7 @@ class Environment2D:
             raise ValueError('obstacle must be an instance of Obstacle')
         if obstacle.ndim != 2:
             raise ValueError('position space of obstacle must be 2D')
-        self.obstacles.append(obstacle)
+        self._obstacles.append(obstacle)
 
     def update(self, dt):
         """
