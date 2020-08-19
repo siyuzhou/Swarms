@@ -62,26 +62,26 @@ def system_edges(obstacles, boids, vicseks):
     return edges
 
 
-def simulation(_):
+def simulation(args, _):
     np.random.seed()
 
     region = (-100, 100, -100, 100)
 
     env = Environment2D(region)
 
-    for _ in range(ARGS.boids):
+    for _ in range(args.boids):
         position = np.random.uniform(-80, 80, 2)
         velocity = np.random.uniform(-15, 15, 2)
 
-        agent = Boid(position, velocity, ndim=2, vision=ARGS.vision, size=ARGS.size,
+        agent = Boid(position, velocity, ndim=2, vision=args.vision, size=args.size,
                      max_speed=10, max_acceleration=5)
 
         env.add_agent(agent)
-    for _ in range(ARGS.vicseks):
+    for _ in range(args.vicseks):
         position = np.random.uniform(-80, 80, 2)
         velocity = np.random.uniform(-15, 15, 2)
 
-        agent = Vicsek(position, velocity, ndim=2, vision=ARGS.vision, size=ARGS.size,
+        agent = Vicsek(position, velocity, ndim=2, vision=args.vision, size=args.size,
                        max_speed=10, max_acceleration=5)
 
         env.add_agent(agent)
@@ -93,7 +93,7 @@ def simulation(_):
         np.vstack([agent.position for agent in env.population]), axis=0)
 
     spheres = []
-    for _ in range(ARGS.obstacles):
+    for _ in range(args.obstacles):
         sphere = random_obstacle(avg_boids_position, goal.position, 8)
         spheres.append(sphere)
         env.add_obstacle(sphere)
@@ -102,8 +102,8 @@ def simulation(_):
     velocity_data = []
     time_data = []
     t = 0
-    for _ in range(ARGS.steps):
-        env.update(ARGS.dt)
+    for _ in range(args.steps):
+        env.update(args.dt)
         position_data.append([goal.position for goal in env.goals] +
                              [sphere.position for sphere in spheres] +
                              [agent.position.copy() for agent in env.population])
@@ -111,12 +111,12 @@ def simulation(_):
                              [np.zeros(2) for sphere in spheres] +
                              [agent.velocity.copy() for agent in env.population])
         time_data.append(t)
-        t += ARGS.dt
+        t += args.dt
 
     position_data, velocity_data = np.asarray(position_data), np.asarray(velocity_data)
     timeseries_data = np.concatenate([position_data, velocity_data], axis=-1)
 
-    edge_data = system_edges(ARGS.obstacles, ARGS.boids, ARGS.vicseks)
+    edge_data = system_edges(args.obstacles, args.boids, args.vicseks)
 
     return timeseries_data, edge_data, time_data
 
@@ -134,7 +134,7 @@ def main():
         Vicsek.set_model(model_config["vicsek"])
 
     timeseries_data_all, edge_data_all, time_data_all = \
-        utils.run_simulation(simulation, ARGS.instances, ARGS.processes, ARGS.batch_size)
+        utils.run_simulation(simulation, ARGS, ARGS.instances, ARGS.processes, ARGS.batch_size)
 
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix + '_timeseries.npy'), timeseries_data_all)
     np.save(os.path.join(ARGS.save_dir, ARGS.prefix + '_edge.npy'), edge_data_all)
