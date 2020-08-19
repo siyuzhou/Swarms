@@ -18,6 +18,18 @@ N_STEPS: No. of steps for which data is generated
 
 N: No. of Boids + No. of Vicseks + No. of obstacles  
 D: State vector in form of (position, velocity)
+
+## Edge types
+Edge types of the directed graph represent the influences between
+elements of the system.
+```
+|    |Goal|Obst|Boid|Visc|  
+|Goal| 0  | 0  | 1  | 5  |  
+|Obst| 0  | 0  | 2  | 6  |  
+|Boid| 0  | 0  | 3  | 7  |  
+|Visc| 0  | 0  | 4  | 8  |  
+```
+
 ## Boid
 
 A simple implementation of Craig Reynolds' [Boids](https://www.red3d.com/cwr/boids/) model.  
