@@ -16,7 +16,7 @@ N_STEPS: No. of steps for which data is generated
 *_time.npy: Time steps(dt)  
 *_timeseries.npy: N_STEPS x N x D tensor  
 
-N: No. of Boids + No. of Vicseks + No. of obstacles  
+N: Goal + No. of obstacles + No. of Boids + No. of Vicseks  
 D: State vector in form of (position, velocity)
 
 ## Edge types
