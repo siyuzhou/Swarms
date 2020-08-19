@@ -6,7 +6,7 @@ import multiprocessing
 
 import numpy as np
 
-from classes import *
+from swarms import *
 import utils
 
 

@@ -4,7 +4,7 @@ import time
 
 import numpy as np
 
-from classes import *
+from swarms import *
 
 
 def animate(env, region):

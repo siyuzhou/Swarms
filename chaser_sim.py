@@ -3,7 +3,7 @@ import time
 import argparse
 import numpy as np
 
-from classes import ParticleChaser
+from swarms import ParticleChaser
 import utils
 
 
