@@ -1,8 +1,6 @@
 import os
 import argparse
 import json
-import time
-import multiprocessing
 
 import numpy as np
 
@@ -125,7 +123,8 @@ def main():
     if not os.path.exists(ARGS.save_dir):
         os.makedirs(ARGS.save_dir)
 
-    with open(ARGS.config) as f:
+    file_dir = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(file_dir, ARGS.config)) as f:
         model_config = json.load(f)
 
     if ARGS.boids > 0:
