@@ -42,21 +42,21 @@ def _reward_to_goal(distance_to_goal):
     """
     Reward function determined by distance to goal.
     """
-    return 2 * (1 / (distance_to_goal + 0.5) - 0.5)
+    return 0.2 * (1 / (distance_to_goal / ENV_SIZE + 0.5) - 0.4)
 
 
 def _reward_agent_pair(relative_distance, collision):
     """
     Reward function determined by agent relative distance
     """
-    return - relative_distance / ENV_SIZE * (1 - collision) - 2 * collision
+    return 0.1 * (1 - relative_distance / ENV_SIZE) * (1 - collision) - 10 * collision
 
 
 def _reward_to_obstacle(distance_to_obstacle, collision):
     """
     Reward function determined by distance to obstacle.
     """
-    return -2 * collision
+    return -10 * collision
 
 
 class BoidSphereEnv2D:
@@ -86,6 +86,7 @@ class BoidSphereEnv2D:
         self.reset()
 
     def reset(self):
+        self._env.goals.clear()
         for _ in range(self.num_goals):
             goal = Goal(np.random.uniform(-0.4*self.size, 0.4*self.size, NDIM), ndim=NDIM)
             self._env.add_goal(goal)
@@ -177,20 +178,26 @@ class BoidSphereEnv2D:
 
         next_state = self._get_env_state()
         reward = self._reward()
-        done = np.any(self._agent_obstacle_collision) or np.any(self._agent_obstacle_collision)
+        done = np.any(self._agent_pair_collision) or np.any(self._agent_obstacle_collision)
 
         return next_state, reward, done
 
     def _reward(self):
         agent_pair_reward = _reward_agent_pair(
             self._agent_pair_distances, self._agent_pair_collision)
+
         agent_obstacle_reward = _reward_to_obstacle(
             self._agent_obstacle_distances, self._agent_obstacle_collision)
+
         agent_goal_reward = _reward_to_goal(self._agent_goal_distances)
 
-        reward = np.sum(agent_pair_reward) + np.sum(agent_obstacle_reward) + \
-            np.sum(agent_goal_reward)
-        return reward
+        agent_reward = np.sum(agent_pair_reward, axis=-1) + np.sum(agent_obstacle_reward, axis=-1) + \
+            np.sum(agent_goal_reward, axis=-1)
+
+        obstacle_reward = np.zeros(self.num_obstacles)
+        goal_reward = np.zeros(self.num_goals)
+
+        return agent_reward, obstacle_reward, goal_reward
 
     def _check_collision(self):
         """
