@@ -168,6 +168,8 @@ class BoidSphereEnv2D:
 
     def step(self, action):
         a = action / self.dt
+
+        assert len(a) == len(self._env.population)
         for agent, acc in zip(self._env.population, a):
             agent.acceleration = acc
 
@@ -205,6 +207,7 @@ class BoidSphereEnv2D:
         """
         agent_pair_collision = self._agent_pair_distances < 2 * BOID_SIZE
         np.fill_diagonal(agent_pair_collision, False)
+
         agent_obstacle_collision = self._agent_obstacle_distances < BOID_SIZE + SPHERE_SIZE
 
         self._agent_pair_collision = agent_pair_collision
