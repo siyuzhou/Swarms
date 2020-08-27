@@ -42,14 +42,14 @@ def _reward_to_goal(distance_to_goal):
     """
     Reward function determined by distance to goal.
     """
-    return 0.2 * (1 / (distance_to_goal / ENV_SIZE + 0.5) - 0.4)
+    return 0.2 * (1 / (distance_to_goal / ENV_SIZE + 0.25) - 0.44)
 
 
 def _reward_agent_pair(relative_distance, collision):
     """
     Reward function determined by agent relative distance
     """
-    return 0.1 * (1 - relative_distance / ENV_SIZE) * (1 - collision) - 10 * collision
+    return 0.05 * (1 - relative_distance / ENV_SIZE) * (1 - collision) - 10 * collision
 
 
 def _reward_to_obstacle(distance_to_obstacle, collision):
@@ -173,7 +173,9 @@ class BoidSphereEnv2D:
         for agent, acc in zip(self._env.population, a):
             agent.acceleration = acc
 
-        self._env.update(self.dt)
+        # Cannot use env.update, since it overrides acceleration
+        for agent in self._env.population:
+            agent.move(self.dt)
 
         self._update_states()
         self._check_collision()
