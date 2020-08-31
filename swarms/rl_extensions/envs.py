@@ -42,7 +42,7 @@ def _reward_to_goal(distance_to_goal):
     """
     Reward function determined by distance to goal.
     """
-    return 0.2 * (1 / (distance_to_goal / ENV_SIZE + 0.25) - 0.44)
+    return 0.2 * (1 / (distance_to_goal / ENV_SIZE + 0.1) - 0.25)
 
 
 def _reward_agent_pair(relative_distance, collision):
@@ -60,21 +60,34 @@ def _reward_to_obstacle(distance_to_obstacle, collision):
 
 
 class BoidSphereEnv2D:
-    def __init__(self, num_boids, num_obstacles, num_goals, dt, config=None):
-        self._env = Environment2D((-ENV_SIZE, ENV_SIZE, -ENV_SIZE, ENV_SIZE))
+    def __init__(self, num_boids, num_obstacles, num_goals, dt,
+                       env_size=ENV_SIZE, ndim=NDIM, 
+                       boid_size=BOID_SIZE, sphere_size=SPHERE_SIZE,
+                       max_speed=MAX_SPEED, max_acceleration=MAX_ACCELERATION, 
+                       config=None):
 
-        self.size = ENV_SIZE
+        self._env = Environment2D((-env_size, env_size, -env_size, env_size))
+
+        self.size = env_size
+        self.ndim = ndim
 
         self.num_agents = num_boids
         self.num_obstacles = num_obstacles
         self.num_goals = num_goals
 
         self.dt = dt
-        self.config = config
 
-        self._agent_states = np.zeros((num_boids, 2 * NDIM))
-        self._obstacle_states = np.zeros((num_obstacles, 2 * NDIM))
-        self._goal_states = np.zeros((num_goals, 2 * NDIM))
+        self.config = config if config else {}
+        self.config.update({
+            'boid_size': boid_size,
+            'sphere_size': sphere_size,
+            'max_speed': max_speed,
+            'max_acceleration': max_acceleration
+        })
+
+        self._agent_states = np.zeros((num_boids, 2 * ndim))
+        self._obstacle_states = np.zeros((num_obstacles, 2 * ndim))
+        self._goal_states = np.zeros((num_goals, 2 * ndim))
 
         self._agent_pair_distances = np.zeros((num_boids, num_boids))
         self._agent_obstacle_distances = np.zeros((num_boids, num_obstacles))
@@ -88,12 +101,12 @@ class BoidSphereEnv2D:
     def reset(self):
         self._env.goals.clear()
         for _ in range(self.num_goals):
-            goal = Goal(np.random.uniform(-0.4*self.size, 0.4*self.size, NDIM), ndim=NDIM)
+            goal = Goal(np.random.uniform(-0.4*self.size, 0.4*self.size, self.ndim), ndim=self.ndim)
             self._env.add_goal(goal)
 
         self._env.population.clear()
         for _ in range(self.num_agents):
-            agent = random_boid(0.8 * self.size, MAX_SPEED, MAX_ACCELERATION)
+            agent = random_boid(0.8 * self.size, self.config['max_speed'], self.config['max_acceleration'])
             self._env.add_agent(agent)
 
         avg_boids_position = np.mean(
@@ -104,7 +117,7 @@ class BoidSphereEnv2D:
 
         self._env._obstacles.clear()
         for _ in range(self.num_obstacles):
-            sphere = random_sphere(avg_boids_position * 1.5, avg_goals_position * 1.5, SPHERE_SIZE)
+            sphere = random_sphere(avg_boids_position * 1.5, avg_goals_position * 1.5, self.config['sphere_size'])
             self._env.add_obstacle(sphere)
 
         self._update_states()
@@ -126,16 +139,16 @@ class BoidSphereEnv2D:
 
     def _update_obstacle_states(self):
         sphere_pos = np.vstack([sphere.position.copy() for sphere in self._env._obstacles])
-        sphere_vel = np.vstack([np.zeros(NDIM) for _ in self._env._obstacles])
+        sphere_vel = np.vstack([np.zeros(self.ndim) for _ in self._env._obstacles])
         self._obstacle_states = np.concatenate([sphere_pos, sphere_vel], -1)
 
     def _update_goal_states(self):
         goal_pos = np.vstack([goal.position.copy() for goal in self._env.goals])
-        goal_vel = np.vstack([np.zeros(NDIM) for _ in self._env.goals])
+        goal_vel = np.vstack([np.zeros(self.ndim) for _ in self._env.goals])
         self._goal_states = np.concatenate([goal_pos, goal_vel], -1)
 
     def _update_agent_pair_distances(self):
-        agent_positions = self._agent_states[:, :NDIM]
+        agent_positions = self._agent_states[:, :self.ndim]
         agent_positions_from = agent_positions[:, np.newaxis, :]
         agent_positions_to = agent_positions[np.newaxis, :, :]
         agent_pair_displacements = agent_positions_from - agent_positions_to
@@ -144,8 +157,8 @@ class BoidSphereEnv2D:
         self._agent_pair_distances = agent_pair_distances
 
     def _update_agent_obstacle_distances(self):
-        agent_positions = self._agent_states[:, :NDIM]
-        obstacle_positions = self._obstacle_states[:, :NDIM]
+        agent_positions = self._agent_states[:, :self.ndim]
+        obstacle_positions = self._obstacle_states[:, :self.ndim]
         agent_positions = agent_positions[:, np.newaxis, :]
         obstacle_positions = obstacle_positions[np.newaxis, :, :]
         agent_obstacle_displacements = agent_positions - obstacle_positions
@@ -154,8 +167,8 @@ class BoidSphereEnv2D:
         self._agent_obstacle_distances = agent_obstacle_distances
 
     def _update_agent_goal_distances(self):
-        agent_positions = self._agent_states[:, :NDIM]
-        goal_positions = self._goal_states[:, :NDIM]
+        agent_positions = self._agent_states[:, :self.ndim]
+        goal_positions = self._goal_states[:, :self.ndim]
         agent_positions = agent_positions[:, np.newaxis, :]
         goal_positions = goal_positions[np.newaxis, :, :]
         agent_goal_displacements = agent_positions - goal_positions
@@ -207,10 +220,10 @@ class BoidSphereEnv2D:
         """
         Check if there is any collision with
         """
-        agent_pair_collision = self._agent_pair_distances < 2 * BOID_SIZE
+        agent_pair_collision = self._agent_pair_distances < 2 * self.config['boid_size']
         np.fill_diagonal(agent_pair_collision, False)
 
-        agent_obstacle_collision = self._agent_obstacle_distances < BOID_SIZE + SPHERE_SIZE
+        agent_obstacle_collision = self._agent_obstacle_distances < self.config['boid_size'] + self.config['sphere_size']
 
         self._agent_pair_collision = agent_pair_collision
         self._agent_obstacle_collision = agent_obstacle_collision
