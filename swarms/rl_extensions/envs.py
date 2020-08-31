@@ -49,7 +49,7 @@ def _reward_agent_pair(relative_distance, collision):
     """
     Reward function determined by agent relative distance
     """
-    return 0.05 * (1 - relative_distance / ENV_SIZE) * (1 - collision) - 10 * collision
+    return 0.05 * (0 - relative_distance / ENV_SIZE) * (1 - collision) - 10 * collision
 
 
 def _reward_to_obstacle(distance_to_obstacle, collision):
@@ -198,10 +198,10 @@ class BoidSphereEnv2D:
         agent_reward = np.sum(agent_pair_reward, axis=-1) + np.sum(agent_obstacle_reward, axis=-1) + \
             np.sum(agent_goal_reward, axis=-1)
 
-        obstacle_reward = np.zeros(self.num_obstacles)
-        goal_reward = np.zeros(self.num_goals)
+        # obstacle_reward = np.zeros(self.num_obstacles)
+        # goal_reward = np.zeros(self.num_goals)
 
-        return agent_reward, obstacle_reward, goal_reward
+        return agent_reward #, obstacle_reward, goal_reward
 
     def _check_collision(self):
         """
