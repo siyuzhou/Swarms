@@ -112,12 +112,12 @@ class BoidSphereEnv2D:
         avg_boids_position = np.mean(
             np.vstack([agent.position for agent in self._env.population]), axis=0)
 
-        avg_goals_position = np.mean(
-            np.vstack([goal.position for goal in self._env.goals]), axis=0)
+        # avg_goals_position = np.mean(
+        #     np.vstack([goal.position for goal in self._env.goals]), axis=0)
 
         self._env._obstacles.clear()
         for _ in range(self.num_obstacles):
-            sphere = random_sphere(avg_boids_position * 1.5, avg_goals_position * 1.5, self.config['sphere_size'])
+            sphere = random_sphere(avg_boids_position - 0.3 * self.size, avg_boids_position + 0.3 * self.size, self.config['sphere_size'])
             self._env.add_obstacle(sphere)
 
         self._update_states()
@@ -133,19 +133,21 @@ class BoidSphereEnv2D:
         self._update_agent_goal_distances()
 
     def _update_agent_states(self):
-        agent_pos = np.vstack([agent.position.copy() for agent in self._env.population])
-        agent_vel = np.vstack([agent.velocity.copy() for agent in self._env.population])
+        agent_pos = np.array([agent.position for agent in self._env.population])
+        agent_vel = np.array([agent.velocity for agent in self._env.population])
         self._agent_states = np.concatenate([agent_pos, agent_vel], -1)
 
     def _update_obstacle_states(self):
-        sphere_pos = np.vstack([sphere.position.copy() for sphere in self._env._obstacles])
-        sphere_vel = np.vstack([np.zeros(self.ndim) for _ in self._env._obstacles])
-        self._obstacle_states = np.concatenate([sphere_pos, sphere_vel], -1)
+        sphere_pos = np.array([sphere.position for sphere in self._env._obstacles])
+        sphere_vel = np.array([np.zeros(self.ndim) for _ in self._env._obstacles])
+        obstacle_states = np.concatenate([sphere_pos, sphere_vel], -1)
+        self._obstacle_states = obstacle_states.reshape(self.num_obstacles, self.ndim * 2)
 
     def _update_goal_states(self):
-        goal_pos = np.vstack([goal.position.copy() for goal in self._env.goals])
-        goal_vel = np.vstack([np.zeros(self.ndim) for _ in self._env.goals])
-        self._goal_states = np.concatenate([goal_pos, goal_vel], -1)
+        goal_pos = np.array([goal.position for goal in self._env.goals])
+        goal_vel = np.array([np.zeros(self.ndim) for _ in self._env.goals])
+        goal_states = np.concatenate([goal_pos, goal_vel], -1)
+        self._goal_states = goal_states.reshape(self.num_goals, self.ndim * 2)
 
     def _update_agent_pair_distances(self):
         agent_positions = self._agent_states[:, :self.ndim]
@@ -164,6 +166,7 @@ class BoidSphereEnv2D:
         agent_obstacle_displacements = agent_positions - obstacle_positions
 
         agent_obstacle_distances = np.linalg.norm(agent_obstacle_displacements, axis=-1)
+        # assert agent_obstacle_distances.shape == (self.num_agents, self.num_obstacles)
         self._agent_obstacle_distances = agent_obstacle_distances
 
     def _update_agent_goal_distances(self):
@@ -174,6 +177,7 @@ class BoidSphereEnv2D:
         agent_goal_displacements = agent_positions - goal_positions
 
         agent_goal_distances = np.linalg.norm(agent_goal_displacements, axis=-1)
+        # assert agent_goal_distances.shape == (self.num_agents, self.num_goals)
         self._agent_goal_distances = agent_goal_distances
 
     def _get_env_state(self):
