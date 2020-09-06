@@ -42,21 +42,21 @@ def _reward_to_goal(distance_to_goal):
     """
     Reward function determined by distance to goal.
     """
-    return 0.2 * (1 / (distance_to_goal / ENV_SIZE + 0.1) - 0.25)
+    return 0.2 * (1 / (distance_to_goal / ENV_SIZE + 0.1) - 0.8)
 
 
 def _reward_agent_pair(relative_distance, collision):
     """
     Reward function determined by agent relative distance
     """
-    return 0.05 * (0 - relative_distance / ENV_SIZE) * (1 - collision) - 10 * collision
+    return 0.05 * (0 - relative_distance / ENV_SIZE) * (1 - collision) - 10. * collision
 
 
 def _reward_to_obstacle(distance_to_obstacle, collision):
     """
     Reward function determined by distance to obstacle.
     """
-    return -10 * collision
+    return -10. * collision
 
 
 class BoidSphereEnv2D:
@@ -98,7 +98,8 @@ class BoidSphereEnv2D:
 
         self.reset()
 
-    def reset(self):
+    def reset(self, seed=None):
+        np.random.seed(seed)
         self._env.goals.clear()
         for _ in range(self.num_goals):
             goal = Goal(np.random.uniform(-0.4*self.size, 0.4*self.size, self.ndim), ndim=self.ndim)
@@ -212,8 +213,8 @@ class BoidSphereEnv2D:
 
         agent_goal_reward = _reward_to_goal(self._agent_goal_distances)
 
-        agent_reward = np.sum(agent_pair_reward, axis=-1) + np.sum(agent_obstacle_reward, axis=-1) + \
-            np.sum(agent_goal_reward, axis=-1)
+        agent_reward = np.concatenate([agent_goal_reward, agent_obstacle_reward, agent_pair_reward], axis=-1)
+        agent_reward = np.sum(agent_reward, axis=-1)
 
         # obstacle_reward = np.zeros(self.num_obstacles)
         # goal_reward = np.zeros(self.num_goals)
