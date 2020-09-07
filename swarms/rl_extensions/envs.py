@@ -1,6 +1,8 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 from swarms import Environment2D, Sphere, Boid, Goal
+from swarms.rl_extensions.rendering import Window
 
 ENV_SIZE = 100
 NDIM = 2
@@ -8,6 +10,8 @@ BOID_SIZE = 3
 MAX_ACCELERATION = 5
 MAX_SPEED = 10
 SPHERE_SIZE = 8
+
+AGENT_COLORS = plt.rcParams['axes.prop_cycle'].by_key()['color'] * 20
 
 
 def random_sphere(position1, position2, r):
@@ -97,6 +101,7 @@ class BoidSphereEnv2D:
         self._agent_obstacle_collision = np.zeros((num_boids, num_obstacles))
 
         self.reset()
+        self.window = Window('Swarms')
 
     def reset(self, seed=None):
         np.random.seed(seed)
@@ -232,3 +237,27 @@ class BoidSphereEnv2D:
 
         self._agent_pair_collision = agent_pair_collision
         self._agent_obstacle_collision = agent_obstacle_collision
+
+    def render(self):
+        if self.window.closed:
+            self.window.show(block=False)
+        
+        # fig, ax = plt.subplots(figsize=(7,7))
+        for i in range(self.num_goals):
+            self.window.ax.add_patch(plt.Circle(self._goal_states[i, 0:2], radius=self.config['sphere_size'], color='grey', fill=False))
+        for i in range(self.num_obstacles):
+            self.window.ax.add_patch(plt.Circle(self._obstacle_states[i, 0:2], radius=self.config['sphere_size'], color='red', fill=False))
+        for i in range(self.num_agents):
+            self.window.ax.quiver(*self._agent_states[i, :], units='x', scale=3, width=1, headwidth=3, headlength=5, minlength=0.1, color=AGENT_COLORS[i], alpha=1)
+
+        self.window.ax.axis('equal')
+        self.window.ax.set_xlim(-ENV_SIZE, ENV_SIZE)
+        self.window.ax.set_ylim(-ENV_SIZE, ENV_SIZE)
+
+        self.window.fig.canvas.draw()       # draw the canvas, cache the renderer
+        image = np.frombuffer(self.window.fig.canvas.tostring_rgb(), dtype='uint8')
+        image  = image.reshape(self.window.fig.canvas.get_width_height()[::-1] + (3,))
+
+        self.window.show_img(image)
+        # Clear axis at every timestep
+        plt.cla()
