@@ -244,11 +244,12 @@ class BoidSphereEnv2D:
         
         # fig, ax = plt.subplots(figsize=(7,7))
         for i in range(self.num_goals):
-            self.window.ax.add_patch(plt.Circle(self._goal_states[i, 0:2], radius=self.config['sphere_size'], color='grey', fill=False))
+            self.window.ax.add_patch(plt.Circle(self._goal_states[i, 0:2], radius=1, color='grey', fill=False))
         for i in range(self.num_obstacles):
-            self.window.ax.add_patch(plt.Circle(self._obstacle_states[i, 0:2], radius=self.config['sphere_size'], color='red', fill=False))
+            self.window.ax.add_patch(plt.Circle(self._obstacle_states[i, 0:2], radius=self.config['sphere_size'], color='black', fill=False))
         for i in range(self.num_agents):
-            self.window.ax.quiver(*self._agent_states[i, :], units='x', scale=3, width=1, headwidth=3, headlength=5, minlength=0.1, color=AGENT_COLORS[i], alpha=1)
+            self.window.ax.add_patch(plt.Circle(self._agent_states[i, :2], radius=self.config['boid_size'], color=AGENT_COLORS[i]))
+            self.window.ax.quiver(*self._agent_states[i, :], units='x', scale=3, width=1, headwidth=3, headlength=5, minlength=0.1, color=AGENT_COLORS[i], alpha=0.8)
 
         self.window.ax.axis('equal')
         self.window.ax.set_xlim(-ENV_SIZE, ENV_SIZE)
