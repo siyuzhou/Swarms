@@ -1,3 +1,4 @@
+import os
 import argparse
 import json
 import time
@@ -54,7 +55,8 @@ def animate(env, region):
 
 
 def main():
-    with open(ARGS.config) as f:
+    file_dir = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(file_dir, ARGS.config)) as f:
         model_config = json.load(f)
 
     if ARGS.boids > 0:
