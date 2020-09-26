@@ -102,6 +102,7 @@ class BoidSphereEnv2D:
 
         self.reset()
         self.window = Window('Swarms')
+        self.closed = False
 
     def reset(self, seed=None):
         np.random.seed(seed)
@@ -190,6 +191,8 @@ class BoidSphereEnv2D:
         return self._agent_states, self._obstacle_states, self._goal_states
 
     def step(self, action):
+        if self.closed:
+            raise RuntimeError('env closed')
         a = action / self.dt
 
         assert len(a) == len(self._env.population)
@@ -262,3 +265,7 @@ class BoidSphereEnv2D:
         self.window.show_img(image)
         # Clear axis at every timestep
         plt.cla()
+
+    def close(self):
+        self.closed = True
+        self.window.close()
