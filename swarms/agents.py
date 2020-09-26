@@ -183,11 +183,11 @@ class Boid(Agent):
         for goal in goals:
             goal_steering += self._goal_seeking(goal) * goal.priority
 
-        self._acceleration = (self.config['cohesion'] * self._cohesion() +
-                              self.config['separation'] * self._seperation() +
-                              self.config['alignment'] * self._alignment() +
-                              self.config['obstacle_avoidance'] * self._obstacle_avoidance() +
-                              self.config['goal_steering'] * goal_steering)
+        self.acceleration = (self.config['cohesion'] * self._cohesion() +
+                             self.config['separation'] * self._seperation() +
+                             self.config['alignment'] * self._alignment() +
+                             self.config['obstacle_avoidance'] * self._obstacle_avoidance() +
+                             self.config['goal_steering'] * goal_steering)
 
     @classmethod
     def set_model(cls, config):
@@ -255,7 +255,7 @@ class Vicsek(Agent):
         for obstacle in self.obstacles:
             interactions += self._interaction(obstacle)
 
-        self._acceleration[:] = interactions[:] + goal_steering[:]
+        self.acceleration = interactions + goal_steering
 
     @classmethod
     def set_model(cls, config):
