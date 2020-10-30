@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 
+
 class Window:
     """
     Window to draw a Swarm environment instance using Matplotlib
@@ -18,8 +19,8 @@ class Window:
         self.fig.canvas.set_window_title(title)
 
         # Turn off x/y axis numbering/ticks
-        self.ax.set_xticks([], [])
-        self.ax.set_yticks([], [])
+        self.ax.set_xticks([], minor=False)
+        self.ax.set_yticks([], minor=False)
 
         # Flag indicating the window was closed
         self.closed = False
