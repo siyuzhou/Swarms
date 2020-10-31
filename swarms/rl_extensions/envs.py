@@ -1,3 +1,5 @@
+import gym
+from gym import spaces
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -63,15 +65,17 @@ def _reward_to_obstacle(distance_to_obstacle, collision):
     return -10. * collision
 
 
-class BoidSphereEnv2D:
-    def __init__(self, num_boids, num_obstacles, num_goals, dt,
+class BoidSphereEnv2D(gym.Env):
+    def __init__(self, num_boids=5, num_obstacles=1, num_goals=1, dt=0.3,
                        env_size=ENV_SIZE, ndim=NDIM, 
                        boid_size=BOID_SIZE, sphere_size=SPHERE_SIZE,
                        max_speed=MAX_SPEED, max_acceleration=MAX_ACCELERATION, 
                        config=None):
 
-        self._env = Environment2D((-env_size, env_size, -env_size, env_size))
+        super(BoidSphereEnv2D, self).__init__()
 
+        self._env = Environment2D((-env_size, env_size, -env_size, env_size))
+        num_boids = 5
         self.size = env_size
         self.ndim = ndim
 
@@ -100,8 +104,11 @@ class BoidSphereEnv2D:
         self._agent_pair_collision = np.zeros((num_boids, num_boids))
         self._agent_obstacle_collision = np.zeros((num_boids, num_obstacles))
 
+        self.action_space = spaces.Box(low=-np.inf, high=np.inf, shape=(self.num_agents,self.ndim))
+        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(self.num_agents,self.ndim*2))
+
         self.reset()
-        self.window = Window('Swarms')
+        # self.window = Window('Swarms')
 
     def reset(self, seed=None):
         np.random.seed(seed)
@@ -120,7 +127,6 @@ class BoidSphereEnv2D:
 
         # avg_goals_position = np.mean(
         #     np.vstack([goal.position for goal in self._env.goals]), axis=0)
-
         self._env._obstacles.clear()
         for _ in range(self.num_obstacles):
             sphere = random_sphere(avg_boids_position - 0.3 * self.size, avg_boids_position + 0.3 * self.size, self.config['sphere_size'])
@@ -206,8 +212,9 @@ class BoidSphereEnv2D:
         next_state = self._get_env_state()
         reward = self._reward()
         done = np.any(self._agent_pair_collision) or np.any(self._agent_obstacle_collision)
-
-        return next_state, reward, done
+        info = {}
+        
+        return next_state, reward, done, info
 
     def _reward(self):
         agent_pair_reward = _reward_agent_pair(
@@ -262,3 +269,4 @@ class BoidSphereEnv2D:
         self.window.show_img(image)
         # Clear axis at every timestep
         plt.cla()
+        return image
