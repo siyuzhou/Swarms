@@ -24,8 +24,8 @@ def random_sphere(position1, position2, r):
     sin = d[1] / d_len
 
     # Generat random x and y assuming d is aligned with x axis.
-    x = np.random.uniform(2+r, d_len-r)
-    y = np.random.uniform(-2*r, 2*r)
+    x = np.random.uniform(2 + r, d_len - r)
+    y = np.random.uniform(-2 * r, 2 * r)
 
     # Rotate the alignment back to the actural d.
     true_x = x * cos + y * sin + position2[0]
@@ -67,15 +67,15 @@ def _reward_to_obstacle(distance_to_obstacle, collision):
 
 class BoidSphereEnv2D(gym.Env):
     def __init__(self, num_boids=5, num_obstacles=1, num_goals=1, dt=0.3,
-                       env_size=ENV_SIZE, ndim=NDIM, 
-                       boid_size=BOID_SIZE, sphere_size=SPHERE_SIZE,
-                       max_speed=MAX_SPEED, max_acceleration=MAX_ACCELERATION, 
-                       config=None):
+                 env_size=ENV_SIZE, ndim=NDIM,
+                 boid_size=BOID_SIZE, sphere_size=SPHERE_SIZE,
+                 max_speed=MAX_SPEED, max_acceleration=MAX_ACCELERATION,
+                 config=None):
 
         super(BoidSphereEnv2D, self).__init__()
 
         self._env = Environment2D((-env_size, env_size, -env_size, env_size))
-        num_boids = 5
+
         self.size = env_size
         self.ndim = ndim
 
@@ -104,8 +104,9 @@ class BoidSphereEnv2D(gym.Env):
         self._agent_pair_collision = np.zeros((num_boids, num_boids))
         self._agent_obstacle_collision = np.zeros((num_boids, num_obstacles))
 
-        self.action_space = spaces.Box(low=-np.inf, high=np.inf, shape=(self.num_agents,self.ndim))
-        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(self.num_agents,self.ndim*2))
+        self.action_space = spaces.Box(low=-np.inf, high=np.inf, shape=(self.num_agents, self.ndim))
+        self.observation_space = spaces.Box(
+            low=-np.inf, high=np.inf, shape=(self.num_agents, self.ndim * 2))
 
         self.reset()
         self.window = Window('Swarms')
@@ -115,12 +116,14 @@ class BoidSphereEnv2D(gym.Env):
         np.random.seed(seed)
         self._env.goals.clear()
         for _ in range(self.num_goals):
-            goal = Goal(np.random.uniform(-0.4*self.size, 0.4*self.size, self.ndim), ndim=self.ndim)
+            goal = Goal(np.random.uniform(-0.4 * self.size, 0.4 *
+                                          self.size, self.ndim), ndim=self.ndim)
             self._env.add_goal(goal)
 
         self._env.population.clear()
         for _ in range(self.num_agents):
-            agent = random_boid(0.8 * self.size, self.config['max_speed'], self.config['max_acceleration'])
+            agent = random_boid(
+                0.8 * self.size, self.config['max_speed'], self.config['max_acceleration'])
             self._env.add_agent(agent)
 
         avg_boids_position = np.mean(
@@ -130,7 +133,8 @@ class BoidSphereEnv2D(gym.Env):
         #     np.vstack([goal.position for goal in self._env.goals]), axis=0)
         self._env._obstacles.clear()
         for _ in range(self.num_obstacles):
-            sphere = random_sphere(avg_boids_position - 0.3 * self.size, avg_boids_position + 0.3 * self.size, self.config['sphere_size'])
+            sphere = random_sphere(avg_boids_position - 0.3 * self.size,
+                                   avg_boids_position + 0.3 * self.size, self.config['sphere_size'])
             self._env.add_obstacle(sphere)
 
         self._update_states()
@@ -216,7 +220,7 @@ class BoidSphereEnv2D(gym.Env):
         reward = self._reward()
         done = np.any(self._agent_pair_collision) or np.any(self._agent_obstacle_collision)
         info = {}
-        
+
         return next_state, reward, done, info
 
     def _reward(self):
@@ -228,13 +232,14 @@ class BoidSphereEnv2D(gym.Env):
 
         agent_goal_reward = _reward_to_goal(self._agent_goal_distances)
 
-        agent_reward = np.concatenate([agent_goal_reward, agent_obstacle_reward, agent_pair_reward], axis=-1)
+        agent_reward = np.concatenate(
+            [agent_goal_reward, agent_obstacle_reward, agent_pair_reward], axis=-1)
         agent_reward = np.sum(agent_reward, axis=-1)
 
         # obstacle_reward = np.zeros(self.num_obstacles)
         # goal_reward = np.zeros(self.num_goals)
 
-        return agent_reward #, obstacle_reward, goal_reward
+        return agent_reward  # , obstacle_reward, goal_reward
 
     def _check_collision(self):
         """
@@ -243,7 +248,8 @@ class BoidSphereEnv2D(gym.Env):
         agent_pair_collision = self._agent_pair_distances < 2 * self.config['boid_size']
         np.fill_diagonal(agent_pair_collision, False)
 
-        agent_obstacle_collision = self._agent_obstacle_distances < self.config['boid_size'] + self.config['sphere_size']
+        agent_obstacle_collision = self._agent_obstacle_distances < self.config[
+            'boid_size'] + self.config['sphere_size']
 
         self._agent_pair_collision = agent_pair_collision
         self._agent_obstacle_collision = agent_obstacle_collision
@@ -251,15 +257,19 @@ class BoidSphereEnv2D(gym.Env):
     def render(self):
         if self.window.closed:
             self.window.show(block=False)
-        
+
         # fig, ax = plt.subplots(figsize=(7,7))
         for i in range(self.num_goals):
-            self.window.ax.add_patch(plt.Circle(self._goal_states[i, 0:2], radius=1, color='grey', fill=False))
+            self.window.ax.add_patch(plt.Circle(
+                self._goal_states[i, 0:2], radius=1, color='grey', fill=False))
         for i in range(self.num_obstacles):
-            self.window.ax.add_patch(plt.Circle(self._obstacle_states[i, 0:2], radius=self.config['sphere_size'], color='black', fill=False))
+            self.window.ax.add_patch(plt.Circle(
+                self._obstacle_states[i, 0:2], radius=self.config['sphere_size'], color='black', fill=False))
         for i in range(self.num_agents):
-            self.window.ax.add_patch(plt.Circle(self._agent_states[i, :2], radius=self.config['boid_size'], color=AGENT_COLORS[i]))
-            self.window.ax.quiver(*self._agent_states[i, :], units='x', scale=3, width=1, headwidth=3, headlength=5, minlength=0.1, color=AGENT_COLORS[i], alpha=0.8)
+            self.window.ax.add_patch(plt.Circle(
+                self._agent_states[i, :2], radius=self.config['boid_size'], color=AGENT_COLORS[i]))
+            self.window.ax.quiver(*self._agent_states[i, :], units='x', scale=3, width=1,
+                                  headwidth=3, headlength=5, minlength=0.1, color=AGENT_COLORS[i], alpha=0.8)
 
         self.window.ax.axis('equal')
         self.window.ax.set_xlim(-ENV_SIZE, ENV_SIZE)
@@ -267,7 +277,7 @@ class BoidSphereEnv2D(gym.Env):
 
         self.window.fig.canvas.draw()       # draw the canvas, cache the renderer
         image = np.frombuffer(self.window.fig.canvas.tostring_rgb(), dtype='uint8')
-        image  = image.reshape(self.window.fig.canvas.get_width_height()[::-1] + (3,))
+        image = image.reshape(self.window.fig.canvas.get_width_height()[::-1] + (3,))
 
         self.window.show_img(image)
         # Clear axis at every timestep
