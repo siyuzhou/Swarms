@@ -9,7 +9,7 @@ class Obstacle:
         self._position = np.zeros(self._ndim)
         self.position = position
         self._velocity = np.zeros(self._ndim)
-        if velocity:
+        if velocity is not None:
             self.velocity = velocity
         self.size = 0
 
@@ -39,6 +39,9 @@ class Obstacle:
     def direction(self, r):
         """Direction of position `r` relative to obstacle surface"""
         raise NotImplementedError()
+
+    def move(self, dt):
+        self.position += self.velocity * dt
 
 
 class Wall(Obstacle):

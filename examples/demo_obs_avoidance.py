@@ -27,7 +27,10 @@ def animate(env, region):
         if vicsek_positions:
             scats[1].set_offsets(vicsek_positions)
 
-        return scats[0], scats[1]
+        goal_positions = [goal.position for goal in env.goals]
+        scats[2].set_offsets(goal_positions)
+
+        return scats
 
     xmin, xmax, ymin, ymax = region
 
@@ -37,10 +40,9 @@ def animate(env, region):
     ax.set_aspect('equal')
 
     scats = [ax.scatter([], [], color='b'),
-             ax.scatter([], [], color='m')]
+             ax.scatter([], [], color='m'),
+             ax.scatter([], [], color='g')]
 
-    for goal in env.goals:
-        ax.scatter(*goal.position, color='g')
     for obstacle in env.obstacles:
         if not isinstance(obstacle, Wall):
             circle = plt.Circle(obstacle.position,
@@ -51,7 +53,7 @@ def animate(env, region):
                                    fargs=(scats, env),
                                    frames=ARGS.steps, interval=20, blit=True)
 
-    anim.save(ARGS.save_name+'.gif', dpi=80, writer='imagemagick')
+    anim.save(ARGS.save_name + '.gif', dpi=80, writer='imagemagick')
 
 
 def main():
@@ -82,7 +84,7 @@ def main():
 
         env.add_agent(agent)
 
-    goal = Goal(np.random.uniform(-60, -40, 2), ndim=2)
+    goal = Goal(np.random.uniform(-60, -40, 2), np.random.uniform(-5, 5, 2), ndim=2)
     env.add_goal(goal)
     # Create a sphere obstacle within in +/- 50 of goal's position.
     for _ in range(ARGS.obstacles):
@@ -95,7 +97,7 @@ def main():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--boids', type=int, default=10,
+    parser.add_argument('--boids', type=int, default=5,
                         help='number of boid agents')
     parser.add_argument('--vicseks', type=int, default=0,
                         help='number of vicsek agents')
