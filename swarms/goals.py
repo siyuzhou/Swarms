@@ -2,11 +2,15 @@ import numpy as np
 
 
 class Goal:
-    def __init__(self, position, priority=1, ndim=3):
+    def __init__(self, position, velocity=None, priority=1, ndim=3):
         self._ndim = ndim if ndim else 3
 
         self._position = np.zeros(self._ndim)
         self.position = position
+
+        self._velocity = np.zeros(self._ndim)
+        if velocity is not None:
+            self.velocity = velocity
 
         self.priority = priority
 
@@ -21,3 +25,14 @@ class Goal:
     @position.setter
     def position(self, position):
         self._position[:] = position[:]
+
+    @property
+    def velocity(self):
+        return self._velocity
+
+    @velocity.setter
+    def velocity(self, velocity):
+        self._velocity[:] = velocity[:]
+
+    def move(self, dt):
+        self.position += self.velocity * dt

@@ -47,16 +47,29 @@ class Environment2D:
             raise ValueError('position space of obstacle must be 2D')
         self._obstacles.append(obstacle)
 
+    def _move_agents(self, dt):
+        for agent in self.population:
+            agent.observe(self)
+            agent.decide(self.goals)
+
+        # Hold off moving agents until all have made decision.
+        # This ensures synchronous update.
+        for agent in self.population:
+            agent.move(dt)
+
+    def _move_goals(self, dt):
+        for goal in self.goals:
+            goal.move(dt)
+
+    def _move_obstacles(self, dt):
+        for obstacle in self.obstacles:
+            obstacle.move(dt)
+
     def update(self, dt):
         """
         Update the state of environment for one time step dt, during which the
         boids move.
         """
-        for agent in self.population:
-            agent.observe(self)
-            agent.decide(self.goals)
-            
-        # Hold off moving agents until all have made decision.
-        # This ensures synchronous update.
-        for agent in self.population:
-            agent.move(dt)
+        self._move_agents(dt)
+        self._move_goals(dt)
+        self._move_obstacles(dt)
