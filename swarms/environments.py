@@ -50,7 +50,7 @@ class Environment2D:
     def _move_agents(self, dt):
         for agent in self.population:
             agent.observe(self)
-            agent.decide(self.goals)
+            agent.decide()
 
         # Hold off moving agents until all have made decision.
         # This ensures synchronous update.

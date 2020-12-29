@@ -68,12 +68,14 @@ def main():
 
     region = (-100, 100, -100, 100)
     env = Environment2D(region)
+    goal = Goal(np.random.uniform(-60, -40, 2), None, ndim=2)
+    env.add_goal(goal)
     for _ in range(ARGS.boids):
         position = np.random.uniform(10, 80, 2)
         velocity = np.random.uniform(-15, 15, 2)
 
         agent = Boid(position, velocity, ndim=2, size=3, max_speed=10, max_acceleration=20)
-
+        agent.set_goal(goal)
         env.add_agent(agent)
 
     for _ in range(ARGS.vicseks):
@@ -81,11 +83,9 @@ def main():
         velocity = np.random.uniform(-15, 15, 2)
 
         agent = Vicsek(position, velocity, ndim=2, size=3, max_speed=10, max_acceleration=20)
-
+        agent.set_goal(goal)
         env.add_agent(agent)
 
-    goal = Goal(np.random.uniform(-60, -40, 2), np.random.uniform(-5, 5, 2), ndim=2)
-    env.add_goal(goal)
     # Create a sphere obstacle within in +/- 50 of goal's position.
     for _ in range(ARGS.obstacles):
         sphere = Sphere(8, np.random.uniform(-40, 30, 2), ndim=2)
