@@ -64,7 +64,7 @@ def _reward_to_obstacle(distance_to_obstacle, collision):
 
 
 class BoidSphereEnv2D:
-    def __init__(self, num_boids, num_obstacles, num_goals, dt,
+    def __init__(self, num_boids, num_obstacles, dt,
                  env_size=ENV_SIZE, ndim=NDIM,
                  boid_size=BOID_SIZE, sphere_size=SPHERE_SIZE,
                  max_speed=MAX_SPEED, max_acceleration=MAX_ACCELERATION,
@@ -78,7 +78,7 @@ class BoidSphereEnv2D:
 
         self.num_agents = num_boids
         self.num_obstacles = num_obstacles
-        self.num_goals = num_goals
+        self.num_goals = 1
 
         self.dt = dt
 
@@ -91,16 +91,16 @@ class BoidSphereEnv2D:
             'goal_speed_ratio': goal_speed_ratio
         })
 
-        self._agent_states = np.zeros((num_boids, 2 * ndim))
-        self._obstacle_states = np.zeros((num_obstacles, 2 * ndim))
-        self._goal_states = np.zeros((num_goals, 2 * ndim))
+        self._agent_states = np.zeros((self.num_agents, 2 * ndim))
+        self._obstacle_states = np.zeros((self.num_obstacles, 2 * ndim))
+        self._goal_states = np.zeros((self.num_goals, 2 * ndim))
 
-        self._agent_pair_distances = np.zeros((num_boids, num_boids))
-        self._agent_obstacle_distances = np.zeros((num_boids, num_obstacles))
-        self._agent_goal_distances = np.zeros((num_boids, num_goals))
+        self._agent_pair_distances = np.zeros((self.num_agents, self.num_agents))
+        self._agent_obstacle_distances = np.zeros((self.num_agents, self.num_obstacles))
+        self._agent_goal_distances = np.zeros((self.num_agents, self.num_goals))
 
-        self._agent_pair_collision = np.zeros((num_boids, num_boids))
-        self._agent_obstacle_collision = np.zeros((num_boids, num_obstacles))
+        self._agent_pair_collision = np.zeros((self.num_agents, self.num_agents))
+        self._agent_obstacle_collision = np.zeros((self.num_agents, self.num_obstacles))
 
         self.reset()
         self.window = Window('Swarms')
@@ -111,16 +111,18 @@ class BoidSphereEnv2D:
 
         self._env.goals.clear()
         goal_speed = self.config['goal_speed_ratio'] * self.config['max_speed']
-        for _ in range(self.num_goals):
-            goal_vel = np.random.uniform(-goal_speed, goal_speed, 2)
-            goal = Goal(np.random.uniform(-0.4 * self.size, 0.4 * self.size, self.ndim),
-                        goal_vel, ndim=self.ndim)
-            self._env.add_goal(goal)
+
+        # Create a goal for all agents
+        goal_vel = np.random.uniform(-goal_speed, goal_speed, 2)
+        goal = Goal(np.random.uniform(-0.4 * self.size, 0.4 * self.size, self.ndim),
+                    goal_vel, ndim=self.ndim)
+        self._env.add_goal(goal)
 
         self._env.population.clear()
         for _ in range(self.num_agents):
             agent = random_boid(
                 0.8 * self.size, self.config['max_speed'], self.config['max_acceleration'])
+            agent.set_goal(goal)
             self._env.add_agent(agent)
 
         avg_boids_position = np.mean(
