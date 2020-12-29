@@ -1,6 +1,7 @@
 import numpy as np
 from .particle import Particle
 from .obstacles import Obstacle
+from .goals import Goal
 
 
 class Agent(Particle):
@@ -21,8 +22,17 @@ class Agent(Particle):
         self.size = float(size) if size else 0.
         self.vision = float(vision) if vision else np.inf
 
+        # Goal.
+        self.goal = None
+
+        # Perceived neighbors and obstacles.
         self.neighbors = []
         self.obstacles = []
+
+    def set_goal(self, goal):
+        if (goal is not None) and not isinstance(goal, Goal):
+            raise ValueError("'goal' must be an instance of 'Goal' or None")
+        self.goal = goal
 
     def can_see(self, other):
         """Whether the boid can see the other."""
@@ -39,6 +49,9 @@ class Agent(Particle):
         # proximity, and no early planning by the agent is made.
         self.obstacles = [obstacle for obstacle in environment.obstacles
                           if self.can_see(obstacle)]
+
+    def decide(self):
+        raise NotImplementedError()
 
 
 class ParticleChaser(Particle):
@@ -69,11 +82,6 @@ class ParticleChaser(Particle):
         self.acceleration = displacement
 
 
-class DynamicalChaser(Agent):
-    """An Agent that chases its neighbors."""
-    pass
-
-
 class Boid(Agent):
     """Boid agent"""
     config = {
@@ -81,7 +89,8 @@ class Boid(Agent):
         "separation": 2,
         "alignment": 0.2,
         "obstacle_avoidance": 2,
-        "goal_steering": 0.5
+        "goal_steering": 0.5,
+        "neighbor_interaction_mode": "avg"
     }
 
     def _cohesion(self):
@@ -112,6 +121,10 @@ class Boid(Agent):
                 # When two neighbors are in the same position, a stronger urge
                 # to move away is assumed, despite that distancing itself from
                 # one neighbor automatically eludes the other.
+
+        # Whether the avg or sum of the influence from neighbors is used.
+        if self.config["neighbor_interaction_mode"] == 'avg' and self.neighbors:
+            repel /= len(self.neighbors)
         return repel
 
     def _alignment(self):
@@ -162,40 +175,33 @@ class Boid(Agent):
         # Return 0 if obstacle does not obstruct.
         return np.zeros(self.ndim)
 
-    def _goal_seeking(self, goal):
+    def _goal_seeking(self):
         """Individual goal of the boid."""
         # As a simple example, suppose the boid would like to go as fast as it
         # can in the current direction when no explicit goal is present.
-        if not goal:
+        if not self.goal:
             return self.velocity / self.speed
 
         # The urge to chase the goal is stronger when farther.
-        offset = goal.position - self.position
+        offset = self.goal.position - self.position
         distance = np.linalg.norm(offset)
         target_speed = self.max_speed * min(1, distance / 20)
         target_velocity = target_speed * offset / distance
         return target_velocity - self.velocity
 
-    def decide(self, goals):
+    def decide(self):
         """Make decision for acceleration."""
-        goal_steering = np.zeros(self.ndim)
-
-        for goal in goals:
-            goal_steering += self._goal_seeking(goal) * goal.priority
-
         self.acceleration = (self.config['cohesion'] * self._cohesion() +
                              self.config['separation'] * self._seperation() +
                              self.config['alignment'] * self._alignment() +
                              self.config['obstacle_avoidance'] * self._obstacle_avoidance() +
-                             self.config['goal_steering'] * goal_steering)
+                             self.config['goal_steering'] * self._goal_seeking())
 
     @classmethod
     def set_model(cls, config):
-        cls.config['cohesion'] = config['cohesion']
-        cls.config['separation'] = config['separation']
-        cls.config['alignment'] = config['alignment']
-        cls.config['obstacle_avoidance'] = config['obstacle_avoidance']
-        cls.config['goal_steering'] = config['goal_steering']
+        # Throw out unmatched keys.
+        config = {k: v for k, v in config.items() if k in cls.config}
+        cls.config.update(config)
 
 
 class Vicsek(Agent):
@@ -227,26 +233,25 @@ class Vicsek(Agent):
 
         return repulsion + friction
 
-    def _goal_seeking(self, goal):
+    def _goal_seeking(self):
         """Individual goal of the boid."""
         # As a simple example, suppose the boid would like to go as fast as it
         # can in the current direction when no explicit goal is present.
-        if not goal:
+        if not self.goal:
             return self.velocity / self.speed
 
         # The urge to chase the goal is stronger when farther.
-        offset = goal.position - self.position
+        offset = self.goal.position - self.position
         distance = np.linalg.norm(offset)
         target_speed = self.max_speed * min(1, distance / 20)
         target_velocity = target_speed * offset / distance
         return target_velocity - self.velocity
 
-    def decide(self, goals):
+    def decide(self):
         """Make decision for acceleration."""
         goal_steering = np.zeros(self.ndim)
 
-        for goal in goals:
-            goal_steering += self._goal_seeking(goal) * goal.priority
+        goal_steering += self._goal_seeking()
 
         interactions = 0
         for neighbor in self.neighbors:
@@ -259,8 +264,5 @@ class Vicsek(Agent):
 
     @classmethod
     def set_model(cls, config):
-        cls.config['tau'] = config['tau']
-        cls.config['A'] = config['A']
-        cls.config['B'] = config['B']
-        cls.config['k'] = config['k']
-        cls.config['kappa'] = config['kappa']
+        config = {k: v for k, v in config.items() if k in cls.config}
+        cls.config.update(config)

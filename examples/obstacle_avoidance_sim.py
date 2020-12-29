@@ -16,8 +16,8 @@ def random_obstacle(position1, position2, r):
     sin = d[1] / d_len
 
     # Generat random x and y assuming d is aligned with x axis.
-    x = np.random.uniform(2+r, d_len-r)
-    y = np.random.uniform(-2*r, 2*r)
+    x = np.random.uniform(2 + r, d_len - r)
+    y = np.random.uniform(-2 * r, 2 * r)
 
     # Rotate the alignment back to the actural d.
     true_x = x * cos + y * sin + position2[0]
@@ -67,12 +67,16 @@ def simulation(args, _):
 
     env = Environment2D(region)
 
+    goal = Goal(np.random.uniform(-40, 40, 2), ndim=2)
+    env.add_goal(goal)
+
     for _ in range(args.boids):
         position = np.random.uniform(-80, 80, 2)
         velocity = np.random.uniform(-15, 15, 2)
 
         agent = Boid(position, velocity, ndim=2, vision=args.vision, size=args.size,
                      max_speed=10, max_acceleration=5)
+        agent.set_goal(goal)
 
         env.add_agent(agent)
     for _ in range(args.vicseks):
@@ -81,11 +85,10 @@ def simulation(args, _):
 
         agent = Vicsek(position, velocity, ndim=2, vision=args.vision, size=args.size,
                        max_speed=10, max_acceleration=5)
+        agent.set_goal(goal)
 
         env.add_agent(agent)
 
-    goal = Goal(np.random.uniform(-40, 40, 2), ndim=2)
-    env.add_goal(goal)
     # Create a sphere obstacle near segment between avg boids position and goal position.
     avg_boids_position = np.mean(
         np.vstack([agent.position for agent in env.population]), axis=0)
@@ -135,7 +138,8 @@ def main():
     timeseries_data_all, edge_data_all, time_data_all = \
         utils.run_simulation(simulation, ARGS, ARGS.instances, ARGS.processes, ARGS.batch_size)
 
-    np.save(os.path.join(ARGS.save_dir, f'{ARGS.prefix}_timeseries{ARGS.suffix}.npy'), timeseries_data_all)
+    np.save(os.path.join(ARGS.save_dir,
+                         f'{ARGS.prefix}_timeseries{ARGS.suffix}.npy'), timeseries_data_all)
     np.save(os.path.join(ARGS.save_dir, f'{ARGS.prefix}_edge{ARGS.suffix}.npy'), edge_data_all)
     np.save(os.path.join(ARGS.save_dir, f'{ARGS.prefix}_time{ARGS.suffix}.npy'), time_data_all)
 
