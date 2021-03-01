@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class Particle:
+class Entity:
     def __init__(self, position, velocity=None, acceleration=None,
                  ndim=None, max_speed=None, max_acceleration=None):
         self._ndim = ndim if ndim else 3
@@ -38,16 +38,6 @@ class Particle:
     def position(self, position):
         self._position[:] = position[:]
 
-    def distance(self, other):
-        """Distance from the other objects."""
-        if isinstance(other, Particle):
-            return np.linalg.norm(self.position - other.position)
-        # If other is not agent, let other tell the distance.
-        try:
-            return other.distance(self.position)
-        except AttributeError:
-            raise ValueError(f'cannot determine distance with {type(other)}')
-
     @property
     def velocity(self):
         return self._velocity
@@ -60,10 +50,6 @@ class Particle:
     @property
     def speed(self):
         return np.linalg.norm(self.velocity)
-
-    @property
-    def direction(self):
-        return self.velocity / self.speed
 
     @property
     def acceleration(self):

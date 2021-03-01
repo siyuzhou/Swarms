@@ -1,37 +1,13 @@
 import numpy as np
+from .entity import Entity
 
 
-class Obstacle:
+class Obstacle(Entity):
     def __init__(self, position, velocity=None, ndim=None):
         """Base class `Obstacle`."""
-        self._ndim = ndim if ndim else 3
+        super().__init__(position, velocity, ndim=ndim)
 
-        self._position = np.zeros(self._ndim)
-        self.position = position
-        self._velocity = np.zeros(self._ndim)
-        if velocity is not None:
-            self.velocity = velocity
         self.size = 0
-
-    @property
-    def ndim(self):
-        return self._ndim
-
-    @property
-    def position(self):
-        return self._position
-
-    @position.setter
-    def position(self, position):
-        self._position[:] = position[:]
-
-    @property
-    def velocity(self):
-        return self._velocity
-
-    @velocity.setter
-    def velocity(self, velocity):
-        self._velocity[:] = velocity[:]
 
     def distance(self, r):
         raise NotImplementedError()
@@ -39,9 +15,6 @@ class Obstacle:
     def direction(self, r):
         """Direction of position `r` relative to obstacle surface"""
         raise NotImplementedError()
-
-    def move(self, dt):
-        self.position += self.velocity * dt
 
 
 class Wall(Obstacle):
@@ -88,7 +61,7 @@ class Sphere(Obstacle):
 
 
 class Rectangle(Obstacle):
-    def __init__(self, sides, direction, position, velocity=None, ndim=None):
+    def __init__(self, sides, position, orientation, velocity=None, ndim=None):
         """
         A generalized rectangle in ndim space.
         """
@@ -97,7 +70,7 @@ class Rectangle(Obstacle):
         if len(sides) != self.ndim:
             raise ValueError('number of side lengths does not match ndim')
 
-        self._direction = np.array(direction, dtype=float)
-        if self._direction.shape != (self._ndim,):
+        self._orientation = np.array(orientation, dtype=float)
+        if self._orientation.shape != (self._ndim,):
             raise ValueError('direction must be of shape ({},)'.format(self._ndim))
-        self._direction /= np.linalg.norm(self._direction)  # Normalization
+        self._orientation /= np.linalg.norm(self._orientation)  # Normalization

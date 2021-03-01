@@ -1,10 +1,10 @@
 import numpy as np
-from .particle import Particle
+from .entity import Entity
 from .obstacles import Obstacle
 from .goals import Goal
 
 
-class Agent(Particle):
+class Agent(Entity):
     def __init__(self, position, velocity=None, acceleration=None,
                  ndim=None, max_speed=None, max_acceleration=None,
                  size=None, vision=None):
@@ -28,6 +28,16 @@ class Agent(Particle):
         # Perceived neighbors and obstacles.
         self.neighbors = []
         self.obstacles = []
+
+    def distance(self, other):
+        """Distance from the other objects."""
+        if isinstance(other, Agent):
+            return np.linalg.norm(self.position - other.position)
+        # If other is not agent, let other tell the distance.
+        try:
+            return other.distance(self.position)
+        except AttributeError:
+            raise ValueError(f'cannot determine distance with {type(other)}')
 
     def set_goal(self, goal):
         if (goal is not None) and not isinstance(goal, Goal):
@@ -54,7 +64,7 @@ class Agent(Particle):
         raise NotImplementedError()
 
 
-class ParticleChaser(Particle):
+class Chaser(Entity):
     """A Particle agent that chases another Particle"""
 
     def __init__(self, position, velocity=None, acceleration=None,
@@ -69,8 +79,8 @@ class ParticleChaser(Particle):
 
     def add_target(self, new_target):
         if new_target:
-            if not isinstance(new_target, Particle):
-                raise ValueError('new_target must be a Particle')
+            if not isinstance(new_target, Entity):
+                raise ValueError('new_target must be a Entity')
 
             self._targets.append(new_target)
 
@@ -159,15 +169,16 @@ class Boid(Agent):
         obstacle = self.obstacles[closest]
         # normal distance of obstacle to velocity, note that min_distance is obstacle's distance
         obstacle_direction = -obstacle.direction(self.position)
+        v_direction = self.velocity / self.speed
         sin_theta = np.linalg.norm(
-            np.cross(self.direction, obstacle_direction))
+            np.cross(v_direction, obstacle_direction))
         normal_distance = (min_distance + obstacle.size) * \
             sin_theta - obstacle.size
         # Decide if self is on course of collision.
         if normal_distance < self.size:
             # normal direction away from obstacle
             cos_theta = np.sqrt(1 - sin_theta * sin_theta)
-            turn_direction = self.direction * cos_theta - obstacle_direction
+            turn_direction = v_direction * cos_theta - obstacle_direction
             turn_direction = turn_direction / np.linalg.norm(turn_direction)
             # Stronger the obstrution, stronger the turn.
             return turn_direction * (self.size - normal_distance)**2 / max(min_distance, self.size)

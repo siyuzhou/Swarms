@@ -3,7 +3,7 @@ import time
 import argparse
 import numpy as np
 
-from swarms import ParticleChaser
+from swarms import Chaser
 import utils
 
 
@@ -29,7 +29,7 @@ def create_chasers(n, m):
         x, y = r * np.cos(theta), r * np.sin(theta)
         v = np.random.uniform(-2, 2, 2)
 
-        particles.append(ParticleChaser((x, y), v, ndim=2, max_speed=10, max_acceleration=10))
+        particles.append(Chaser((x, y), v, ndim=2, max_speed=10, max_acceleration=10))
 
     edges = np.zeros((n, n))
     particle_idxs = np.arange(n)
@@ -115,9 +115,9 @@ def main():
     timeseries_data_all, edge_data_all, time_data_all = \
         utils.run_simulation(simulation, ARGS, ARGS.instances, ARGS.processes, ARGS.batch_size)
 
-    np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_timeseries.npy'), timeseries_data_all)
-    np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_edge.npy'), edge_data_all)
-    np.save(os.path.join(ARGS.save_dir, ARGS.prefix+'_time.npy'), time_data_all)
+    np.save(os.path.join(ARGS.save_dir, ARGS.prefix + '_timeseries.npy'), timeseries_data_all)
+    np.save(os.path.join(ARGS.save_dir, ARGS.prefix + '_edge.npy'), edge_data_all)
+    np.save(os.path.join(ARGS.save_dir, ARGS.prefix + '_time.npy'), time_data_all)
 
 
 if __name__ == '__main__':
@@ -140,7 +140,7 @@ if __name__ == '__main__':
                         help='max change rate allowed for skip steps')
     parser.add_argument('--max-skip', type=int, default=5,
                         help='max number of steps allowed to skip in adaptive mode')
-    parser.add_argument('--save-dir', type=str,
+    parser.add_argument('--save-dir', type=str, default='.',
                         help='name of the save directory')
     parser.add_argument('--prefix', type=str, default='',
                         help='prefix for save files')

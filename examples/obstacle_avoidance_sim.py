@@ -165,7 +165,7 @@ if __name__ == '__main__':
                         help='time resolution')
     parser.add_argument('--config', type=str, default='config/boid_vicsek_default.json',
                         help='path to config file')
-    parser.add_argument('--save-dir', type=str,
+    parser.add_argument('--save-dir', type=str, default='.',
                         help='name of the save directory')
     parser.add_argument('--prefix', type=str, default='',
                         help='prefix for save files')
