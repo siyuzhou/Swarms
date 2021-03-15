@@ -2,7 +2,7 @@ import numpy as np
 
 
 class Goal:
-    def __init__(self, position, velocity=None, priority=1, ndim=3):
+    def __init__(self, position, velocity=None, ndim=3):
         self._ndim = ndim if ndim else 3
 
         self._position = np.zeros(self._ndim)
@@ -11,8 +11,6 @@ class Goal:
         self._velocity = np.zeros(self._ndim)
         if velocity is not None:
             self.velocity = velocity
-
-        self.priority = priority
 
     @property
     def ndim(self):

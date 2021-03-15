@@ -115,7 +115,7 @@ class Boid(Agent):
 
         return center - self.position
 
-    def _seperation(self):
+    def _separation(self):
         """Boids try to keep a small distance away from other objects."""
         repel = np.zeros(self._ndim)
         for neighbor in self.neighbors:
@@ -203,7 +203,7 @@ class Boid(Agent):
     def decide(self):
         """Make decision for acceleration."""
         self.acceleration = (self.config['cohesion'] * self._cohesion() +
-                             self.config['separation'] * self._seperation() +
+                             self.config['separation'] * self._separation() +
                              self.config['alignment'] * self._alignment() +
                              self.config['obstacle_avoidance'] * self._obstacle_avoidance() +
                              self.config['goal_steering'] * self._goal_seeking())

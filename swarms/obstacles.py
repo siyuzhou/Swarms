@@ -18,7 +18,7 @@ class Obstacle(Entity):
 
 
 class Wall(Obstacle):
-    def __init__(self, direction, position, velocity=None, ndim=None):
+    def __init__(self, direction, position, ndim=None):
         """
         A plane in space that repels free agents.
 
@@ -26,7 +26,7 @@ class Wall(Obstacle):
             position: the position of a point the wall passes.
             direction: the normal direction of the plane wall.
         """
-        super().__init__(position, velocity, ndim)
+        super().__init__(position, ndim)
 
         self._direction = np.array(direction, dtype=float)
         if self._direction.shape != (self._ndim,):
