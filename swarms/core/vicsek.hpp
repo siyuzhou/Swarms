@@ -70,8 +70,14 @@ template <unsigned int N>
 std::valarray<double> Vicsek<N>::goalSeeking_()
 {
     // If no explicit goal is preent, accelerate along velocity.
-    if (self.goal_ == nullptr)
-        return this->velocity_ / speed();
+    if (this->goal_ == nullptr)
+    {
+        double speed = this->speed();
+        if (speed > 0)
+            return this->velocity_ / speed;
+        else
+            return std::valarray<double>(N);
+    }
 
     // The farther the goal, the stronger the attraction.
     auto offset = goal_.position() - this->position_;

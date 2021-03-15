@@ -128,7 +128,12 @@ std::valarray<double> Boid<N>::obstacleAvoidance_()
     std::shared_ptr<const Obstacle<N>> obs = closest;
 
     auto obs_direction = this->direction(obs);
-    auto v_direction = this->velocity_ / this->speed();
+
+    std::valarray<double> v_direction(N);
+    double speed = this->speed();
+    if (speed > 0)
+        v_direction = this->velocity_ / speed;
+
     double cos_theta = Entity<N>::dot(obs_direction, v_direction);
     double sin_theta = std::sqrt(1 - cos_theta * cos_theta);
     double normal_d = (min_d + obs->size()) * sin_theta - obs->size();
@@ -152,13 +157,20 @@ std::valarray<double> Boid<N>::goalSeeking_()
 {
     // If no explicit goal is preent, accelerate along velocity.
     if (this->goal_ == nullptr)
-        return this->velocity_ / this->speed();
+    {
+        double speed = this->speed();
+        if (speed > 0)
+            return this->velocity_ / speed;
+        else
+            return std::valarray<double>(N);
+    }
 
     // The farther the goal, the stronger the attraction.
-    auto offset = this->goal_->position() - this->position_;
+    std::valarray<double> offset = this->goal_->position() - this->position_;
     double d = Entity<N>::norm(offset);
-    auto target_speed = this->max_speed_ * std::min(1., d / 20.);
-    auto target_velocity = target_speed * offset / d;
+    double target_speed = this->max_speed_ * std::min(1., d / 20.);
+    std::valarray<double> target_velocity = target_speed * offset / d;
+
     return target_velocity - this->velocity_;
 }
 
