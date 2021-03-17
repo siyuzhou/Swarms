@@ -9,10 +9,6 @@ class Obstacle : public Entity<N>
 {
 public:
     explicit Obstacle(const std::valarray<double> &p, const std::valarray<double> &v = std::valarray<double>(N), double size = 0);
-    double size() const;
-
-protected:
-    const double size_;
 };
 
 template <unsigned int N>
@@ -47,10 +43,7 @@ public:
 
 template <unsigned int N>
 Obstacle<N>::Obstacle(const std::valarray<double> &p, const std::valarray<double> &v, double size)
-    : Entity<N>{p, v, std::valarray<double>(N)}, size_(size) {}
-
-template <unsigned int N>
-double Obstacle<N>::size() const { return size_; }
+    : Entity<N>{p, v, std::valarray<double>(N), -1., -1., size} {}
 
 template <unsigned int N>
 Wall<N>::Wall(const std::valarray<double> &o, const std::valarray<double> &p)

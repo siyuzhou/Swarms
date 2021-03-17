@@ -10,11 +10,12 @@ class Entity
 {
 public:
     Entity(const std::valarray<double> &p, const std::valarray<double> &v, const std::valarray<double> &a,
-           double max_v = -1, double max_a = -1);
+           double max_v = -1, double max_a = -1, double size = 0.);
 
     void reset(const std::valarray<double> &p, const std::valarray<double> &v, const std::valarray<double> &a);
 
     unsigned int ndim() const;
+    double size() const;
     std::valarray<double> position() const;
     std::valarray<double> velocity() const;
     double speed() const;
@@ -45,6 +46,8 @@ protected:
     double max_speed_ = -1.;
     double max_acceleration_ = -1.;
 
+    const double size_;
+
     std::valarray<double> position_;
     std::valarray<double> velocity_;
     std::valarray<double> acceleration_;
@@ -54,8 +57,8 @@ protected:
 
 template <unsigned int N>
 Entity<N>::Entity(const std::valarray<double> &p, const std::valarray<double> &v, const std::valarray<double> &a,
-                  double max_v, double max_a)
-    : max_speed_(max_v), max_acceleration_(max_a)
+                  double max_v, double max_a, double size)
+    : max_speed_(max_v), max_acceleration_(max_a), size_(size)
 {
     reset(p, v, a);
 }
@@ -105,7 +108,13 @@ template <unsigned int N>
 unsigned int Entity<N>::ndim() const { return N; }
 
 template <unsigned int N>
-std::valarray<double> Entity<N>::position() const { return position_; }
+double Entity<N>::size() const { return size_; }
+
+template <unsigned int N>
+std::valarray<double> Entity<N>::position() const
+{
+    return position_;
+}
 
 template <unsigned int N>
 std::valarray<double> Entity<N>::velocity() const { return velocity_; }

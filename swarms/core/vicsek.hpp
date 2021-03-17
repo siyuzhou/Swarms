@@ -4,14 +4,14 @@
 #include <memory>
 #include "agent.hpp"
 
-struct Config
+struct VicsekConfig
 {
     double tau = 1.0;
     double A = 1.0;
     double B = 2.0;
     double k = 2.0;
     double kappa = 1.0;
-}
+};
 
 template <unsigned int N>
 class Vicsek : public Agent<N>
@@ -24,24 +24,24 @@ public:
 
     void decide() override;
 
-    static void setModel(const Config &config);
+    static void setModel(const VicsekConfig &config);
 
 private:
-    std::valarray<double> interaction_(std::shared_ptr<Entity<N>> other);
-    std::valarray<double> goalSeaking_();
+    std::valarray<double> interaction_(std::shared_ptr<const Entity<N>> other);
+    std::valarray<double> goalSeeking_();
 
-    static Config config_;
+    static VicsekConfig config_;
 };
 
 template <unsigned int N>
-Config Vicsek<N>::config_ = Config();
+VicsekConfig Vicsek<N>::config_ = VicsekConfig();
 
 template <unsigned int N>
 Vicsek<N>::Vicsek(const std::valarray<double> &p, const std::valarray<double> &v, const std::valarray<double> &a,
                   double max_v, double max_a, double size, double vision) : Agent<N>{p, v, a, max_v, max_a, size, vision} {}
 
 template <unsigned int N>
-void Vicsek<N>::setModel(const Config &config)
+void Vicsek<N>::setModel(const VicsekConfig &config)
 {
     Vicsek<N>::config_ = config;
 }
@@ -49,18 +49,18 @@ void Vicsek<N>::setModel(const Config &config)
 template <unsigned int N>
 std::valarray<double> Vicsek<N>::interaction_(std::shared_ptr<const Entity<N>> other)
 {
-    double r = size_ + other->size();
+    double r = this->size_ + other->size();
     double d = this->distance(other);
 
-    auto n = this->direction(other);
-    auto repulsion = config_.A * std::exp((r - d) / config_.B) * n;
+    std::valarray<double> n = this->direction(other);
+    std::valarray<double> repulsion = config_.A * std::exp((r - d) / config_.B) * n;
 
     std::valarray<double> friction(N);
     if (r > d)
     {
         repulsion += config_.k * (r - d) * n;
 
-        auto delta_v = other.velocity() - this->velocity_;
+        std::valarray<double> delta_v = other->velocity() - this->velocity_;
         friction += config_.kappa * (r - d) * (delta_v - Entity<N>::dot(delta_v, n) * n);
     }
     return friction + repulsion;
@@ -80,10 +80,10 @@ std::valarray<double> Vicsek<N>::goalSeeking_()
     }
 
     // The farther the goal, the stronger the attraction.
-    auto offset = goal_.position() - this->position_;
+    std::valarray<double> offset = this->goal_->position() - this->position_;
     double d = Entity<N>::norm(offset);
-    auto target_speed = max_speed_ * std::min(1, d / 20);
-    auto target_velocity = target_speed * offset / d;
+    double target_speed = this->max_speed_ * std::min(1., d / 20.);
+    std::valarray<double> target_velocity = target_speed * offset / d;
     return target_velocity - this->velocity_;
 }
 
@@ -96,5 +96,5 @@ void Vicsek<N>::decide()
     for (const auto entity : this->neighbors_)
         inter += interaction_(entity);
 
-    this->setAcceleration(inter + goalSteering_());
+    this->setAcceleration(inter + this->goalSeeking_());
 }

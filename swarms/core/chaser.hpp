@@ -37,7 +37,7 @@ template <unsigned int N>
 void Chaser<N>::decide()
 {
     std::valarray<double> disp(N);
-    for (const auto &target : targets_)
+    for (auto &target : targets_)
         disp += target->position() - this->position_;
 
     this->setAcceleration(disp);

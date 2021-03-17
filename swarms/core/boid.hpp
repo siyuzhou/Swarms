@@ -9,7 +9,7 @@ enum Mode
     AVG
 };
 
-struct Config
+struct BoidConfig
 {
     double cohesion = 0.2;
     double separation = 2;
@@ -30,7 +30,7 @@ public:
 
     void decide() override;
 
-    static void setModel(const Config &config);
+    static void setModel(const BoidConfig &config);
 
 private:
     std::valarray<double> cohesion_();
@@ -39,18 +39,18 @@ private:
     std::valarray<double> obstacleAvoidance_();
     std::valarray<double> goalSeeking_();
 
-    static Config config_;
+    static BoidConfig config_;
 };
 
 template <unsigned int N>
-Config Boid<N>::config_ = Config();
+BoidConfig Boid<N>::config_ = BoidConfig();
 
 template <unsigned int N>
 Boid<N>::Boid(const std::valarray<double> &p, const std::valarray<double> &v, const std::valarray<double> &a,
               double max_v, double max_a, double size, double vision) : Agent<N>{p, v, a, max_v, max_a, size, vision} {}
 
 template <unsigned int N>
-void Boid<N>::setModel(const Config &config)
+void Boid<N>::setModel(const BoidConfig &config)
 {
     Boid<N>::config_ = config;
 }
@@ -127,7 +127,7 @@ std::valarray<double> Boid<N>::obstacleAvoidance_()
 
     std::shared_ptr<const Obstacle<N>> obs = closest;
 
-    auto obs_direction = this->direction(obs);
+    std::valarray<double> obs_direction = this->direction(obs);
 
     std::valarray<double> v_direction(N);
     double speed = this->speed();

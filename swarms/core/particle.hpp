@@ -9,7 +9,7 @@ class Particle : public Entity<N>
 {
 public:
     Particle(const std::valarray<double> &p, const std::valarray<double> &v, const std::valarray<double> &a,
-             double max_v = -1, double max_a = -1);
+             double max_v = -1., double max_a = -1., double size = 0.);
 
     double distance(std::shared_ptr<const Entity<N>> other) const override;
     double distance(const std::valarray<double> &x) const override;
@@ -21,8 +21,8 @@ public:
 
 template <unsigned int N>
 Particle<N>::Particle(const std::valarray<double> &p, const std::valarray<double> &v, const std::valarray<double> &a,
-                      double max_v, double max_a)
-    : Entity<N>(p, v, a, max_v, max_a) {}
+                      double max_v, double max_a, double size)
+    : Entity<N>(p, v, a, max_v, max_a, size) {}
 
 template <unsigned int N>
 double Particle<N>::distance(std::shared_ptr<const Entity<N>> other) const

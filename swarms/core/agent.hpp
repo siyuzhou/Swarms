@@ -23,8 +23,6 @@ public:
     bool canSee(std::shared_ptr<const Entity<N>> other) const;
     void observe(const Environment<N> &env);
 
-    double size() const;
-
     virtual void decide() = 0;
 
 protected:
@@ -33,7 +31,6 @@ protected:
 
     std::shared_ptr<const Goal<N>> goal_;
 
-    const double size_;
     const double vision_;
 };
 
@@ -42,14 +39,11 @@ protected:
 template <unsigned int N>
 Agent<N>::Agent(const std::valarray<double> &p, const std::valarray<double> &v, const std::valarray<double> &a,
                 double max_v, double max_a, double size, double vision)
-    : Particle<N>{p, v, a, max_v, max_a}, size_(size), vision_((vision > 0 ? vision : std::numeric_limits<double>::max()))
+    : Particle<N>{p, v, a, max_v, max_a, size}, vision_((vision > 0 ? vision : std::numeric_limits<double>::max()))
 {
     this->setMaxVelocity(max_v);
     this->setMaxAcceleration(max_a);
 }
-
-template <unsigned int N>
-double Agent<N>::size() const { return size_; }
 
 template <unsigned int N>
 void Agent<N>::setGoal(std::shared_ptr<const Goal<N>> goal)
