@@ -3,20 +3,19 @@
 #include <valarray>
 #include "agent.hpp"
 
-enum Mode
-{
-    SUM,
-    AVG
-};
-
 struct BoidConfig
 {
+    enum struct Mode
+    {
+        SUM,
+        AVG
+    };
     double cohesion = 0.2;
     double separation = 2;
     double alignment = 0.2;
     double obstacle_avoidance = 2;
     double goal_steering = 0.5;
-    Mode neighbor_interaction_mode = AVG;
+    Mode neighbor_interaction_mode = Mode::AVG;
 };
 
 template <unsigned int N>
@@ -82,7 +81,7 @@ std::valarray<double> Boid<N>::separation_()
             repel += (this->position_ - neighbor->position()) / d / d;
         }
     }
-    if (!this->neighbors_.empty() && config_.neighbor_interaction_mode == AVG)
+    if (!this->neighbors_.empty() && config_.neighbor_interaction_mode == BoidConfig::Mode::AVG)
         repel /= this->neighbors_.size();
     return repel;
 }
